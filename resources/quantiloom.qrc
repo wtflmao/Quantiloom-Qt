@@ -1,0 +1,10 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <!-- Icons -->
+        <!-- <file>icons/app_icon.png</file> -->
+
+        <!-- Stylesheets -->
+        <!-- <file>stylesheets/dark_theme.qss</file> -->
+    </qresource>
+</RCC>
