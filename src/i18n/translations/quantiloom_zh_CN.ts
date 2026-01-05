@@ -5,7 +5,7 @@
     <name>MainWindow</name>
     <message>
         <source>Quantiloom - Spectral Path Tracer</source>
-        <translation>Quantiloom - 光谱路径追踪器</translation>
+        <translation>Quantiloom - 光谱渲染引擎</translation>
     </message>
     <message>
         <source>&amp;File</source>
