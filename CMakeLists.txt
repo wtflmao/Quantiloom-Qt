@@ -103,6 +103,20 @@ set(GUI_SOURCES
     src/vulkan/QuantiloomVulkanWindow.hpp
     src/vulkan/QuantiloomVulkanRenderer.cpp
     src/vulkan/QuantiloomVulkanRenderer.hpp
+    # Parameter panels
+    src/panels/SceneTreePanel.cpp
+    src/panels/SceneTreePanel.hpp
+    src/panels/MaterialEditorPanel.cpp
+    src/panels/MaterialEditorPanel.hpp
+    src/panels/LightingPanel.cpp
+    src/panels/LightingPanel.hpp
+    src/panels/RenderSettingsPanel.cpp
+    src/panels/RenderSettingsPanel.hpp
+    src/panels/SpectralConfigPanel.cpp
+    src/panels/SpectralConfigPanel.hpp
+    # Configuration management
+    src/config/ConfigManager.cpp
+    src/config/ConfigManager.hpp
 )
 
 # ============================================================================

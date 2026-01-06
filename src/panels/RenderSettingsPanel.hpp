@@ -1,0 +1,69 @@
+/**
+ * @file RenderSettingsPanel.hpp
+ * @brief Render settings panel (SPP, resolution, output)
+ */
+
+#pragma once
+
+#include <QWidget>
+
+QT_BEGIN_NAMESPACE
+class QSpinBox;
+class QComboBox;
+class QLabel;
+class QPushButton;
+class QGroupBox;
+class QCheckBox;
+QT_END_NAMESPACE
+
+/**
+ * @class RenderSettingsPanel
+ * @brief Editor for render quality settings
+ */
+class RenderSettingsPanel : public QWidget {
+    Q_OBJECT
+
+public:
+    explicit RenderSettingsPanel(QWidget* parent = nullptr);
+
+    void setSampleCount(uint32_t count);
+    void setTargetSPP(uint32_t spp);
+    void setResolution(uint32_t width, uint32_t height);
+
+    // Getters for current settings
+    uint32_t width() const { return m_width; }
+    uint32_t height() const { return m_height; }
+    uint32_t spp() const { return m_targetSPP; }
+
+signals:
+    void sppChanged(uint32_t spp);
+    void resolutionChanged(uint32_t width, uint32_t height);
+    void exportRequested(const QString& format);
+    void resetAccumulationRequested();
+
+private slots:
+    void onSppPresetChanged(int index);
+    void onCustomSppChanged(int value);
+    void onResolutionPresetChanged(int index);
+    void onExportClicked();
+    void onResetClicked();
+
+private:
+    void setupUi();
+    void updateSppFromPreset(int index);
+
+    // Current settings
+    uint32_t m_targetSPP = 4;
+    uint32_t m_width = 1280;
+    uint32_t m_height = 720;
+
+    // UI elements
+    QLabel* m_sampleCountLabel = nullptr;
+    QComboBox* m_sppPreset = nullptr;
+    QSpinBox* m_customSpp = nullptr;
+    QComboBox* m_resolutionPreset = nullptr;
+    QLabel* m_resolutionLabel = nullptr;
+    QPushButton* m_exportBtn = nullptr;
+    QPushButton* m_resetBtn = nullptr;
+    QCheckBox* m_progressiveCheck = nullptr;
+};

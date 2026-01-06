@@ -12,6 +12,15 @@
 #include <memory>
 #include <vulkan/vulkan.h>
 
+#include <glm/glm.hpp>
+#include <core/Types.hpp>
+
+namespace quantiloom {
+class Scene;
+struct Material;
+struct LightingParams;
+}
+
 class QuantiloomVulkanRenderer;
 
 /**
@@ -46,6 +55,12 @@ public:
     void resetCamera();
 
     /**
+     * @brief Set camera from config parameters
+     */
+    void setCamera(const glm::vec3& position, const glm::vec3& lookAt,
+                   const glm::vec3& up, float fovY);
+
+    /**
      * @brief Set render samples per pixel
      */
     void setSPP(uint32_t spp);
@@ -56,9 +71,34 @@ public:
     void setWavelength(float wavelength_nm);
 
     /**
+     * @brief Set spectral rendering mode
+     */
+    void setSpectralMode(quantiloom::SpectralMode mode);
+
+    /**
+     * @brief Update lighting parameters
+     */
+    void setLightingParams(const quantiloom::LightingParams& params);
+
+    /**
+     * @brief Update material at specified index
+     */
+    void updateMaterial(int index, const quantiloom::Material& material);
+
+    /**
+     * @brief Reset render accumulation
+     */
+    void resetAccumulation();
+
+    /**
      * @brief Get current sample count
      */
     uint32_t currentSampleCount() const;
+
+    /**
+     * @brief Get current scene (may be null)
+     */
+    const quantiloom::Scene* getScene() const;
 
 signals:
     /**

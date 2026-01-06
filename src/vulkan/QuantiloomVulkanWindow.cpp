@@ -13,6 +13,10 @@
 #include <QWheelEvent>
 #include <QDebug>
 
+#include <renderer/LightingParams.hpp>
+#include <scene/Material.hpp>
+#include <scene/Scene.hpp>
+
 QuantiloomVulkanWindow::QuantiloomVulkanWindow(QWindow* parent)
     : QVulkanWindow(parent)
 {
@@ -126,6 +130,13 @@ void QuantiloomVulkanWindow::resetCamera() {
     }
 }
 
+void QuantiloomVulkanWindow::setCamera(const glm::vec3& position, const glm::vec3& lookAt,
+                                        const glm::vec3& up, float fovY) {
+    if (m_renderer) {
+        m_renderer->setCamera(position, lookAt, up, fovY);
+    }
+}
+
 void QuantiloomVulkanWindow::setSPP(uint32_t spp) {
     if (m_renderer) {
         m_renderer->setSPP(spp);
@@ -140,6 +151,34 @@ void QuantiloomVulkanWindow::setWavelength(float wavelength_nm) {
 
 uint32_t QuantiloomVulkanWindow::currentSampleCount() const {
     return m_renderer ? m_renderer->currentSampleCount() : 0;
+}
+
+void QuantiloomVulkanWindow::setSpectralMode(quantiloom::SpectralMode mode) {
+    if (m_renderer) {
+        m_renderer->setSpectralMode(mode);
+    }
+}
+
+void QuantiloomVulkanWindow::setLightingParams(const quantiloom::LightingParams& params) {
+    if (m_renderer) {
+        m_renderer->setLightingParams(params);
+    }
+}
+
+void QuantiloomVulkanWindow::updateMaterial(int index, const quantiloom::Material& material) {
+    if (m_renderer) {
+        m_renderer->updateMaterial(index, material);
+    }
+}
+
+void QuantiloomVulkanWindow::resetAccumulation() {
+    if (m_renderer) {
+        m_renderer->resetAccumulation();
+    }
+}
+
+const quantiloom::Scene* QuantiloomVulkanWindow::getScene() const {
+    return m_renderer ? m_renderer->getScene() : nullptr;
 }
 
 // ============================================================================

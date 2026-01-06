@@ -14,12 +14,16 @@
 #include <chrono>
 
 #include <glm/glm.hpp>
+#include <core/Types.hpp>
 
 class QuantiloomVulkanWindow;
 class QProgressDialog;
 
 namespace quantiloom {
 class ExternalRenderContext;
+class Scene;
+struct LightingParams;
+struct Material;
 }
 
 /**
@@ -49,7 +53,18 @@ public:
     // Render settings
     void setSPP(uint32_t spp);
     void setWavelength(float wavelength_nm);
+    void setSpectralMode(quantiloom::SpectralMode mode);
+    void setLightingParams(const quantiloom::LightingParams& params);
+    void updateMaterial(int index, const quantiloom::Material& material);
+    void resetAccumulation();
     uint32_t currentSampleCount() const { return m_sampleCount; }
+
+    // Camera setup from config
+    void setCamera(const glm::vec3& position, const glm::vec3& lookAt,
+                   const glm::vec3& up, float fovY);
+
+    // Scene access
+    const quantiloom::Scene* getScene() const;
 
     // Camera control
     void updateCameraMovement(bool forward, bool backward, bool left, bool right,
@@ -60,7 +75,6 @@ public:
 
 private:
     void updateCamera(float deltaTime);
-    void resetAccumulation();
 
     // Check if this is the first run (no pipeline cache)
     bool isFirstRun() const;

@@ -9,6 +9,9 @@
 #include "QuantiloomVulkanWindow.hpp"
 
 #include <renderer/ExternalRenderContext.hpp>
+#include <renderer/LightingParams.hpp>
+#include <scene/Material.hpp>
+#include <scene/Scene.hpp>
 
 #include <QVulkanFunctions>
 #include <QFile>
@@ -267,6 +270,32 @@ void QuantiloomVulkanRenderer::resetCamera() {
     }
 }
 
+void QuantiloomVulkanRenderer::setCamera(const glm::vec3& position, const glm::vec3& lookAt,
+                                          const glm::vec3& up, float fovY) {
+    m_cameraPosition = position;
+    m_cameraTarget = lookAt;
+    m_cameraUp = up;
+    m_cameraFovY = fovY;
+
+    // Update orbit distance based on new position/target
+    m_orbitDistance = glm::length(position - lookAt);
+
+    // Calculate orbit angles from the direction vector
+    glm::vec3 dir = glm::normalize(position - lookAt);
+    m_orbitPitch = glm::degrees(std::asin(dir.y));
+    m_orbitYaw = glm::degrees(std::atan2(dir.x, dir.z));
+
+    if (m_renderContext) {
+        m_renderContext->SetCameraLookAt(m_cameraPosition, m_cameraTarget, m_cameraUp);
+        m_renderContext->SetCameraFOV(fovY);
+        resetAccumulation();
+    }
+
+    qDebug() << "Camera set: pos=(" << position.x << "," << position.y << "," << position.z
+             << ") lookAt=(" << lookAt.x << "," << lookAt.y << "," << lookAt.z
+             << ") fov=" << fovY;
+}
+
 void QuantiloomVulkanRenderer::setSPP(uint32_t spp) {
     m_targetSPP = spp;
     if (m_renderContext) {
@@ -280,6 +309,31 @@ void QuantiloomVulkanRenderer::setWavelength(float wavelength_nm) {
         m_renderContext->SetWavelength(wavelength_nm);
         resetAccumulation();
     }
+}
+
+void QuantiloomVulkanRenderer::setSpectralMode(quantiloom::SpectralMode mode) {
+    if (m_renderContext) {
+        m_renderContext->SetSpectralMode(mode);
+        resetAccumulation();
+    }
+}
+
+void QuantiloomVulkanRenderer::setLightingParams(const quantiloom::LightingParams& params) {
+    if (m_renderContext) {
+        m_renderContext->SetLightingParams(params);
+        resetAccumulation();
+    }
+}
+
+void QuantiloomVulkanRenderer::updateMaterial(int index, const quantiloom::Material& material) {
+    if (m_renderContext && index >= 0) {
+        m_renderContext->UpdateMaterial(static_cast<quantiloom::u32>(index), material);
+        resetAccumulation();
+    }
+}
+
+const quantiloom::Scene* QuantiloomVulkanRenderer::getScene() const {
+    return m_renderContext ? m_renderContext->GetScene() : nullptr;
 }
 
 void QuantiloomVulkanRenderer::updateCameraMovement(
