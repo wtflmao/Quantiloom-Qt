@@ -74,6 +74,9 @@ private slots:
     // Help menu actions
     void onAbout();
 
+    // Settings menu actions
+    void onLanguageChanged(const QString& locale);
+
     // Status updates
     void onFrameRendered(float frameTimeMs, uint32_t sampleCount);
 

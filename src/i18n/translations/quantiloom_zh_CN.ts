@@ -4,7 +4,7 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <source>Quantiloom - Spectral Path Tracer</source>
+        <source>Quantiloom - Spectral Renderer</source>
         <translation>Quantiloom - 光谱渲染引擎</translation>
     </message>
     <message>
@@ -24,8 +24,16 @@
         <translation>保存场景(&amp;S)</translation>
     </message>
     <message>
-        <source>&amp;Export Image...</source>
-        <translation>导出图像(&amp;E)...</translation>
+        <source>&amp;Import Config...</source>
+        <translation>导入配置(&amp;I)...</translation>
+    </message>
+    <message>
+        <source>E&amp;xport Config...</source>
+        <translation>导出配置(&amp;X)...</translation>
+    </message>
+    <message>
+        <source>Export &amp;Image...</source>
+        <translation>导出图像(&amp;I)...</translation>
     </message>
     <message>
         <source>E&amp;xit</source>
@@ -140,8 +148,20 @@
         <translation>glTF 文件 (*.gltf *.glb);;TOML 配置 (*.toml);;所有文件 (*)</translation>
     </message>
     <message>
-        <source>Loaded: %1</source>
-        <translation>已加载: %1</translation>
+        <source>Config loaded: %1</source>
+        <translation>配置已加载: %1</translation>
+    </message>
+    <message>
+        <source>Load Failed</source>
+        <translation>加载失败</translation>
+    </message>
+    <message>
+        <source>Failed to load config: %1</source>
+        <translation>配置加载失败: %1</translation>
+    </message>
+    <message>
+        <source>Loading: %1</source>
+        <translation>加载中: %1</translation>
     </message>
     <message>
         <source>Save Scene</source>
@@ -154,6 +174,42 @@
     <message>
         <source>Saved: %1</source>
         <translation>已保存: %1</translation>
+    </message>
+    <message>
+        <source>Import Configuration</source>
+        <translation>导入配置</translation>
+    </message>
+    <message>
+        <source>TOML Config (*.toml);;All Files (*)</source>
+        <translation>TOML 配置 (*.toml);;所有文件 (*)</translation>
+    </message>
+    <message>
+        <source>Config imported: %1</source>
+        <translation>配置已导入: %1</translation>
+    </message>
+    <message>
+        <source>Import Failed</source>
+        <translation>导入失败</translation>
+    </message>
+    <message>
+        <source>Failed to import config: %1</source>
+        <translation>配置导入失败: %1</translation>
+    </message>
+    <message>
+        <source>Export Configuration</source>
+        <translation>导出配置</translation>
+    </message>
+    <message>
+        <source>Config exported: %1</source>
+        <translation>配置已导出: %1</translation>
+    </message>
+    <message>
+        <source>Export Failed</source>
+        <translation>导出失败</translation>
+    </message>
+    <message>
+        <source>Failed to export config: %1</source>
+        <translation>配置导出失败: %1</translation>
     </message>
     <message>
         <source>Export Image</source>
@@ -184,12 +240,74 @@
         <translation>关于 Quantiloom</translation>
     </message>
     <message>
+        <source>&lt;h3&gt;Quantiloom&lt;/h3&gt;&lt;p&gt;Version 0.0.1&lt;/p&gt;&lt;p&gt;A spectral renderer with hardware ray tracing support.&lt;/p&gt;&lt;p&gt;Features:&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Hardware ray tracing&lt;/li&gt;&lt;li&gt;Spectral rendering&lt;/li&gt;&lt;li&gt;PBR materials with spectral extensions&lt;/li&gt;&lt;li&gt;Atmospheric scattering&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Copyright (c) 2025-2026 wtflmao&lt;/p&gt;</source>
+        <translation>&lt;h3&gt;Quantiloom&lt;/h3&gt;&lt;p&gt;版本 0.0.1&lt;/p&gt;&lt;p&gt;支持硬件光线追踪的光谱渲染器。&lt;/p&gt;&lt;p&gt;功能特性：&lt;/p&gt;&lt;ul&gt;&lt;li&gt;硬件光线追踪&lt;/li&gt;&lt;li&gt;光谱渲染&lt;/li&gt;&lt;li&gt;支持光谱扩展的PBR材质&lt;/li&gt;&lt;li&gt;大气散射&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;版权所有 (c) 2025-2026 wtflmao&lt;/p&gt;</translation>
+    </message>
+    <message>
         <source>FPS: %1</source>
         <translation>帧率: %1</translation>
     </message>
     <message>
         <source>Samples: %1</source>
         <translation>采样数: %1</translation>
+    </message>
+    <message>
+        <source>Node %1 selected</source>
+        <translation>已选中节点 %1</translation>
+    </message>
+    <message>
+        <source>Material '%1' selected</source>
+        <translation>已选中材质 '%1'</translation>
+    </message>
+    <message>
+        <source>Material modified</source>
+        <translation>材质已修改</translation>
+    </message>
+    <message>
+        <source>Lighting updated</source>
+        <translation>光照已更新</translation>
+    </message>
+    <message>
+        <source>SPP set to %1</source>
+        <translation>SPP 已设为 %1</translation>
+    </message>
+    <message>
+        <source>Spectral mode: %1</source>
+        <translation>光谱模式: %1</translation>
+    </message>
+    <message>
+        <source>Wavelength: %1 nm</source>
+        <translation>波长: %1 nm</translation>
+    </message>
+    <message>
+        <source>Accumulation reset</source>
+        <translation>累积已重置</translation>
+    </message>
+    <message>
+        <source>Scene Load Failed</source>
+        <translation>场景加载失败</translation>
+    </message>
+    <message>
+        <source>Failed to load scene</source>
+        <translation>场景加载失败</translation>
+    </message>
+    <message>
+        <source>&amp;Settings</source>
+        <translation>设置(&amp;S)</translation>
+    </message>
+    <message>
+        <source>&amp;Language</source>
+        <translation>语言(&amp;L)</translation>
+    </message>
+    <message>
+        <source>Language Changed</source>
+        <translation>语言已更改</translation>
+    </message>
+    <message>
+        <source>The language setting has been changed.
+Please restart the application for the changes to take effect.</source>
+        <translation>语言设置已更改。
+请重新启动应用程序以使更改生效。</translation>
     </message>
 </context>
 <context>
@@ -205,6 +323,314 @@
     <message>
         <source>Failed to load scene: %1</source>
         <translation>场景加载失败: %1</translation>
+    </message>
+    <message>
+        <source>Compiling Shaders</source>
+        <translation>编译着色器</translation>
+    </message>
+    <message>
+        <source>First-time shader compilation in progress...
+This may take a few minutes.</source>
+        <translation>首次着色器编译中...
+这可能需要几分钟时间。</translation>
+    </message>
+</context>
+<context>
+    <name>LightingPanel</name>
+    <message>
+        <source>Sun Direction</source>
+        <translation>太阳方向</translation>
+    </message>
+    <message>
+        <source>Azimuth:</source>
+        <translation>方位角:</translation>
+    </message>
+    <message>
+        <source>Elevation:</source>
+        <translation>仰角:</translation>
+    </message>
+    <message>
+        <source>Radiance</source>
+        <translation>辐射度</translation>
+    </message>
+    <message>
+        <source>Sun:</source>
+        <translation>太阳:</translation>
+    </message>
+    <message>
+        <source>Sky:</source>
+        <translation>天空:</translation>
+    </message>
+    <message>
+        <source>Atmosphere</source>
+        <translation>大气</translation>
+    </message>
+    <message>
+        <source>Transmittance:</source>
+        <translation>透射率:</translation>
+    </message>
+    <message>
+        <source>Temperature:</source>
+        <translation>温度:</translation>
+    </message>
+</context>
+<context>
+    <name>RenderSettingsPanel</name>
+    <message>
+        <source>Quality</source>
+        <translation>质量</translation>
+    </message>
+    <message>
+        <source>Preset:</source>
+        <translation>预设:</translation>
+    </message>
+    <message>
+        <source>Preview (4 SPP)</source>
+        <translation>预览 (4 SPP)</translation>
+    </message>
+    <message>
+        <source>Draft (16 SPP)</source>
+        <translation>草稿 (16 SPP)</translation>
+    </message>
+    <message>
+        <source>Medium (64 SPP)</source>
+        <translation>中等 (64 SPP)</translation>
+    </message>
+    <message>
+        <source>High (256 SPP)</source>
+        <translation>高质量 (256 SPP)</translation>
+    </message>
+    <message>
+        <source>Ultra (1024 SPP)</source>
+        <translation>极高 (1024 SPP)</translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation>自定义</translation>
+    </message>
+    <message>
+        <source>SPP:</source>
+        <translation>SPP:</translation>
+    </message>
+    <message>
+        <source>Current:</source>
+        <translation>当前:</translation>
+    </message>
+    <message>
+        <source>%1 / %2</source>
+        <translation>%1 / %2</translation>
+    </message>
+    <message>
+        <source>Resolution</source>
+        <translation>分辨率</translation>
+    </message>
+    <message>
+        <source>720p (1280×720)</source>
+        <translation>720p (1280×720)</translation>
+    </message>
+    <message>
+        <source>1080p (1920×1080)</source>
+        <translation>1080p (1920×1080)</translation>
+    </message>
+    <message>
+        <source>1440p (2560×1440)</source>
+        <translation>1440p (2560×1440)</translation>
+    </message>
+    <message>
+        <source>4K (3840×2160)</source>
+        <translation>4K (3840×2160)</translation>
+    </message>
+    <message>
+        <source>Output</source>
+        <translation>输出</translation>
+    </message>
+    <message>
+        <source>Export...</source>
+        <translation>导出...</translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation>重置</translation>
+    </message>
+    <message>
+        <source>Progressive</source>
+        <translation>渐进式</translation>
+    </message>
+</context>
+<context>
+    <name>SpectralConfigPanel</name>
+    <message>
+        <source>Spectral Mode</source>
+        <translation>光谱模式</translation>
+    </message>
+    <message>
+        <source>Mode:</source>
+        <translation>模式:</translation>
+    </message>
+    <message>
+        <source>RGB Fused</source>
+        <translation>RGB 融合</translation>
+    </message>
+    <message>
+        <source>Single Wavelength</source>
+        <translation>单波长</translation>
+    </message>
+    <message>
+        <source>SWIR Fused</source>
+        <translation>SWIR 融合</translation>
+    </message>
+    <message>
+        <source>MWIR Fused</source>
+        <translation>MWIR 融合</translation>
+    </message>
+    <message>
+        <source>LWIR Fused</source>
+        <translation>LWIR 融合</translation>
+    </message>
+    <message>
+        <source>Standard visible light rendering with spectral-to-RGB conversion.</source>
+        <translation>标准可见光渲染，光谱转 RGB。</translation>
+    </message>
+    <message>
+        <source>Render at a single wavelength for monochromatic analysis.</source>
+        <translation>在单一波长下渲染，用于单色分析。</translation>
+    </message>
+    <message>
+        <source>Short-wave infrared band (1.0-2.5 μm).</source>
+        <translation>短波红外波段 (1.0-2.5 μm)。</translation>
+    </message>
+    <message>
+        <source>Mid-wave infrared band (3-5 μm).</source>
+        <translation>中波红外波段 (3-5 μm)。</translation>
+    </message>
+    <message>
+        <source>Long-wave infrared band (8-14 μm).</source>
+        <translation>长波红外波段 (8-14 μm)。</translation>
+    </message>
+    <message>
+        <source>Wavelength</source>
+        <translation>波长</translation>
+    </message>
+    <message>
+        <source>Wavelength Range</source>
+        <translation>波长范围</translation>
+    </message>
+    <message>
+        <source>Min (nm):</source>
+        <translation>最小 (nm):</translation>
+    </message>
+    <message>
+        <source>Max (nm):</source>
+        <translation>最大 (nm):</translation>
+    </message>
+    <message>
+        <source>Step (nm):</source>
+        <translation>步长 (nm):</translation>
+    </message>
+    <message>
+        <source>Bands: %1</source>
+        <translation>波段数: %1</translation>
+    </message>
+</context>
+<context>
+    <name>SceneTreePanel</name>
+    <message>
+        <source>Scene Hierarchy</source>
+        <translation>场景层级</translation>
+    </message>
+    <message>
+        <source>No scene loaded</source>
+        <translation>未加载场景</translation>
+    </message>
+    <message>
+        <source>Scene: %1</source>
+        <translation>场景: %1</translation>
+    </message>
+    <message>
+        <source>Meshes</source>
+        <translation>网格</translation>
+    </message>
+    <message>
+        <source>Materials</source>
+        <translation>材质</translation>
+    </message>
+    <message>
+        <source>Nodes</source>
+        <translation>节点</translation>
+    </message>
+    <message>
+        <source>%1 (%2 triangles)</source>
+        <translation>%1 (%2 三角形)</translation>
+    </message>
+</context>
+<context>
+    <name>MaterialEditorPanel</name>
+    <message>
+        <source>Material Properties</source>
+        <translation>材质属性</translation>
+    </message>
+    <message>
+        <source>No material selected</source>
+        <translation>未选中材质</translation>
+    </message>
+    <message>
+        <source>Base Color</source>
+        <translation>基础颜色</translation>
+    </message>
+    <message>
+        <source>Albedo:</source>
+        <translation>反照率:</translation>
+    </message>
+    <message>
+        <source>PBR Parameters</source>
+        <translation>PBR 参数</translation>
+    </message>
+    <message>
+        <source>Metallic:</source>
+        <translation>金属度:</translation>
+    </message>
+    <message>
+        <source>Roughness:</source>
+        <translation>粗糙度:</translation>
+    </message>
+    <message>
+        <source>IOR:</source>
+        <translation>折射率:</translation>
+    </message>
+    <message>
+        <source>Emission</source>
+        <translation>自发光</translation>
+    </message>
+    <message>
+        <source>Color:</source>
+        <translation>颜色:</translation>
+    </message>
+    <message>
+        <source>Strength:</source>
+        <translation>强度:</translation>
+    </message>
+    <message>
+        <source>Spectral</source>
+        <translation>光谱</translation>
+    </message>
+    <message>
+        <source>Spectral Curve:</source>
+        <translation>光谱曲线:</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>无</translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation>重置</translation>
+    </message>
+</context>
+<context>
+    <name>ConfigManager</name>
+    <message>
+        <source>Cannot open file for writing: %1</source>
+        <translation>无法写入文件: %1</translation>
     </message>
 </context>
 </TS>

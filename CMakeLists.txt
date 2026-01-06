@@ -1,5 +1,5 @@
 # ============================================================================
-# QuantiloomGUI - Qt6 GUI for Quantiloom Spectral Path Tracer
+# QuantiloomGUI - Qt6 GUI for Quantiloom Spectral Renderer
 # ============================================================================
 
 cmake_minimum_required(VERSION 3.21)
@@ -241,6 +241,16 @@ if(WIN32)
         )
     endif()
 endif()
+
+# ============================================================================
+# Copy translation files to output directory (all platforms)
+# ============================================================================
+add_custom_command(TARGET QuantiloomQt POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${QM_FILES}
+        $<TARGET_FILE_DIR:QuantiloomQt>
+    COMMENT "Copying translation files..."
+)
 
 # ============================================================================
 # Summary

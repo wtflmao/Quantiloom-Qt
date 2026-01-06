@@ -14,6 +14,7 @@
 #include <QLoggingCategory>
 #include <QTranslator>
 #include <QLocale>
+#include <QSettings>
 
 #include <core/Log.hpp>  // libQuantiloom logging
 
@@ -36,14 +37,35 @@ int main(int argc, char* argv[]) {
     app.setOrganizationName("wtflmao");
     app.setOrganizationDomain("github.com/wtflmao");
 
-    // Load translations based on system locale
+    // Load translations
     QTranslator translator;
-    const QStringList uiLanguages = QLocale::system().uiLanguages();
-    for (const QString& locale : uiLanguages) {
-        const QString baseName = "quantiloom_" + QLocale(locale).name();
-        if (translator.load(":/i18n/" + baseName)) {
+
+    // Check for saved language preference first
+    QSettings settings;
+    QString savedLocale = settings.value("language", "").toString();
+
+    bool translationLoaded = false;
+
+    if (!savedLocale.isEmpty()) {
+        // Use saved language preference
+        const QString baseName = "quantiloom_" + savedLocale;
+        if (translator.load(baseName, app.applicationDirPath())) {
             app.installTranslator(&translator);
-            break;
+            qDebug() << "Loaded translation:" << baseName << "(user preference)";
+            translationLoaded = true;
+        }
+    }
+
+    if (!translationLoaded) {
+        // Fall back to system locale
+        const QStringList uiLanguages = QLocale::system().uiLanguages();
+        for (const QString& locale : uiLanguages) {
+            const QString baseName = "quantiloom_" + QLocale(locale).name();
+            if (translator.load(baseName, app.applicationDirPath())) {
+                app.installTranslator(&translator);
+                qDebug() << "Loaded translation:" << baseName << "(system locale)";
+                break;
+            }
         }
     }
 

@@ -4,135 +4,629 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <source>Quantiloom - Spectral Path Tracer</source>
-        <translation type="unfinished"></translation>
+        <source>Quantiloom - Spectral Renderer</source>
+        <translation>Quantiloom - Spectral Renderer</translation>
     </message>
     <message>
         <source>&amp;File</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;File</translation>
     </message>
     <message>
         <source>&amp;New Scene</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;New Scene</translation>
     </message>
     <message>
         <source>&amp;Open Scene...</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Open Scene...</translation>
     </message>
     <message>
         <source>&amp;Save Scene</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Save Scene</translation>
     </message>
     <message>
-        <source>&amp;Export Image...</source>
-        <translation type="unfinished"></translation>
+        <source>&amp;Import Config...</source>
+        <translation>&amp;Import Config...</translation>
+    </message>
+    <message>
+        <source>E&amp;xport Config...</source>
+        <translation>E&amp;xport Config...</translation>
+    </message>
+    <message>
+        <source>Export &amp;Image...</source>
+        <translation>Export &amp;Image...</translation>
     </message>
     <message>
         <source>E&amp;xit</source>
-        <translation type="unfinished"></translation>
+        <translation>E&amp;xit</translation>
     </message>
     <message>
         <source>&amp;Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Edit</translation>
     </message>
     <message>
         <source>&amp;Undo</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Undo</translation>
     </message>
     <message>
         <source>&amp;Redo</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Redo</translation>
     </message>
     <message>
         <source>&amp;Delete</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Delete</translation>
     </message>
     <message>
         <source>&amp;View</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;View</translation>
     </message>
     <message>
         <source>&amp;Reset Camera</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Reset Camera</translation>
     </message>
     <message>
         <source>&amp;Parameter Panel</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Parameter Panel</translation>
     </message>
     <message>
         <source>&amp;Render</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Render</translation>
     </message>
     <message>
         <source>&amp;Start Render</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Start Render</translation>
     </message>
     <message>
         <source>S&amp;top Render</source>
-        <translation type="unfinished"></translation>
+        <translation>S&amp;top Render</translation>
     </message>
     <message>
         <source>&amp;Help</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Help</translation>
     </message>
     <message>
         <source>&amp;About</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;About</translation>
     </message>
     <message>
         <source>About &amp;Qt</source>
-        <translation type="unfinished"></translation>
+        <translation>About &amp;Qt</translation>
     </message>
     <message>
         <source>Parameters</source>
-        <translation type="unfinished"></translation>
+        <translation>Parameters</translation>
     </message>
     <message>
         <source>Scene</source>
-        <translation type="unfinished"></translation>
+        <translation>Scene</translation>
     </message>
     <message>
         <source>Material</source>
-        <translation type="unfinished"></translation>
+        <translation>Material</translation>
     </message>
     <message>
         <source>Lighting</source>
-        <translation type="unfinished"></translation>
+        <translation>Lighting</translation>
     </message>
     <message>
         <source>Render</source>
-        <translation type="unfinished"></translation>
+        <translation>Render</translation>
     </message>
     <message>
         <source>Spectral</source>
-        <translation type="unfinished"></translation>
+        <translation>Spectral</translation>
     </message>
     <message>
         <source>Ready</source>
-        <translation type="unfinished"></translation>
+        <translation>Ready</translation>
     </message>
     <message>
         <source>FPS: --</source>
-        <translation type="unfinished"></translation>
+        <translation>FPS: --</translation>
     </message>
     <message>
         <source>Samples: 0</source>
-        <translation type="unfinished"></translation>
+        <translation>Samples: 0</translation>
+    </message>
+    <message>
+        <source>Unsaved Changes</source>
+        <translation>Unsaved Changes</translation>
+    </message>
+    <message>
+        <source>The scene has been modified. Do you want to save your changes?</source>
+        <translation>The scene has been modified. Do you want to save your changes?</translation>
+    </message>
+    <message>
+        <source>New scene created</source>
+        <translation>New scene created</translation>
+    </message>
+    <message>
+        <source>Open Scene</source>
+        <translation>Open Scene</translation>
+    </message>
+    <message>
+        <source>glTF Files (*.gltf *.glb);;TOML Config (*.toml);;All Files (*)</source>
+        <translation>glTF Files (*.gltf *.glb);;TOML Config (*.toml);;All Files (*)</translation>
+    </message>
+    <message>
+        <source>Config loaded: %1</source>
+        <translation>Config loaded: %1</translation>
+    </message>
+    <message>
+        <source>Load Failed</source>
+        <translation>Load Failed</translation>
+    </message>
+    <message>
+        <source>Failed to load config: %1</source>
+        <translation>Failed to load config: %1</translation>
+    </message>
+    <message>
+        <source>Loading: %1</source>
+        <translation>Loading: %1</translation>
+    </message>
+    <message>
+        <source>Save Scene</source>
+        <translation>Save Scene</translation>
+    </message>
+    <message>
+        <source>TOML Config (*.toml)</source>
+        <translation>TOML Config (*.toml)</translation>
+    </message>
+    <message>
+        <source>Saved: %1</source>
+        <translation>Saved: %1</translation>
+    </message>
+    <message>
+        <source>Import Configuration</source>
+        <translation>Import Configuration</translation>
+    </message>
+    <message>
+        <source>TOML Config (*.toml);;All Files (*)</source>
+        <translation>TOML Config (*.toml);;All Files (*)</translation>
+    </message>
+    <message>
+        <source>Config imported: %1</source>
+        <translation>Config imported: %1</translation>
+    </message>
+    <message>
+        <source>Import Failed</source>
+        <translation>Import Failed</translation>
+    </message>
+    <message>
+        <source>Failed to import config: %1</source>
+        <translation>Failed to import config: %1</translation>
+    </message>
+    <message>
+        <source>Export Configuration</source>
+        <translation>Export Configuration</translation>
+    </message>
+    <message>
+        <source>Config exported: %1</source>
+        <translation>Config exported: %1</translation>
+    </message>
+    <message>
+        <source>Export Failed</source>
+        <translation>Export Failed</translation>
+    </message>
+    <message>
+        <source>Failed to export config: %1</source>
+        <translation>Failed to export config: %1</translation>
+    </message>
+    <message>
+        <source>Export Image</source>
+        <translation>Export Image</translation>
+    </message>
+    <message>
+        <source>EXR Image (*.exr);;PNG Image (*.png);;All Files (*)</source>
+        <translation>EXR Image (*.exr);;PNG Image (*.png);;All Files (*)</translation>
+    </message>
+    <message>
+        <source>Exported: %1</source>
+        <translation>Exported: %1</translation>
+    </message>
+    <message>
+        <source>Rendering...</source>
+        <translation>Rendering...</translation>
+    </message>
+    <message>
+        <source>Render stopped</source>
+        <translation>Render stopped</translation>
+    </message>
+    <message>
+        <source>Camera reset</source>
+        <translation>Camera reset</translation>
+    </message>
+    <message>
+        <source>About Quantiloom</source>
+        <translation>About Quantiloom</translation>
+    </message>
+    <message>
+        <source>FPS: %1</source>
+        <translation>FPS: %1</translation>
+    </message>
+    <message>
+        <source>Samples: %1</source>
+        <translation>Samples: %1</translation>
+    </message>
+    <message>
+        <source>Node %1 selected</source>
+        <translation>Node %1 selected</translation>
+    </message>
+    <message>
+        <source>Material '%1' selected</source>
+        <translation>Material '%1' selected</translation>
+    </message>
+    <message>
+        <source>Material modified</source>
+        <translation>Material modified</translation>
+    </message>
+    <message>
+        <source>Lighting updated</source>
+        <translation>Lighting updated</translation>
+    </message>
+    <message>
+        <source>SPP set to %1</source>
+        <translation>SPP set to %1</translation>
+    </message>
+    <message>
+        <source>Spectral mode: %1</source>
+        <translation>Spectral mode: %1</translation>
+    </message>
+    <message>
+        <source>Wavelength: %1 nm</source>
+        <translation>Wavelength: %1 nm</translation>
+    </message>
+    <message>
+        <source>Accumulation reset</source>
+        <translation>Accumulation reset</translation>
+    </message>
+    <message>
+        <source>Scene Load Failed</source>
+        <translation>Scene Load Failed</translation>
+    </message>
+    <message>
+        <source>Failed to load scene</source>
+        <translation>Failed to load scene</translation>
+    </message>
+    <message>
+        <source>&amp;Settings</source>
+        <translation>&amp;Settings</translation>
+    </message>
+    <message>
+        <source>&amp;Language</source>
+        <translation>&amp;Language</translation>
+    </message>
+    <message>
+        <source>Language Changed</source>
+        <translation>Language Changed</translation>
+    </message>
+    <message>
+        <source>The language setting has been changed.
+Please restart the application for the changes to take effect.</source>
+        <translation>The language setting has been changed.
+Please restart the application for the changes to take effect.</translation>
     </message>
 </context>
 <context>
     <name>QuantiloomVulkanRenderer</name>
     <message>
         <source>Render context not initialized</source>
-        <translation type="unfinished"></translation>
+        <translation>Render context not initialized</translation>
     </message>
     <message>
         <source>Scene loaded successfully</source>
-        <translation type="unfinished"></translation>
+        <translation>Scene loaded successfully</translation>
     </message>
     <message>
         <source>Failed to load scene: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Failed to load scene: %1</translation>
+    </message>
+    <message>
+        <source>Compiling Shaders</source>
+        <translation>Compiling Shaders</translation>
+    </message>
+    <message>
+        <source>First-time shader compilation in progress...
+This may take a few minutes.</source>
+        <translation>First-time shader compilation in progress...
+This may take a few minutes.</translation>
+    </message>
+</context>
+<context>
+    <name>LightingPanel</name>
+    <message>
+        <source>Sun Direction</source>
+        <translation>Sun Direction</translation>
+    </message>
+    <message>
+        <source>Azimuth:</source>
+        <translation>Azimuth:</translation>
+    </message>
+    <message>
+        <source>Elevation:</source>
+        <translation>Elevation:</translation>
+    </message>
+    <message>
+        <source>Radiance</source>
+        <translation>Radiance</translation>
+    </message>
+    <message>
+        <source>Sun:</source>
+        <translation>Sun:</translation>
+    </message>
+    <message>
+        <source>Sky:</source>
+        <translation>Sky:</translation>
+    </message>
+    <message>
+        <source>Atmosphere</source>
+        <translation>Atmosphere</translation>
+    </message>
+    <message>
+        <source>Transmittance:</source>
+        <translation>Transmittance:</translation>
+    </message>
+    <message>
+        <source>Temperature:</source>
+        <translation>Temperature:</translation>
+    </message>
+</context>
+<context>
+    <name>RenderSettingsPanel</name>
+    <message>
+        <source>Quality</source>
+        <translation>Quality</translation>
+    </message>
+    <message>
+        <source>Preset:</source>
+        <translation>Preset:</translation>
+    </message>
+    <message>
+        <source>Preview (4 SPP)</source>
+        <translation>Preview (4 SPP)</translation>
+    </message>
+    <message>
+        <source>Draft (16 SPP)</source>
+        <translation>Draft (16 SPP)</translation>
+    </message>
+    <message>
+        <source>Medium (64 SPP)</source>
+        <translation>Medium (64 SPP)</translation>
+    </message>
+    <message>
+        <source>High (256 SPP)</source>
+        <translation>High (256 SPP)</translation>
+    </message>
+    <message>
+        <source>Ultra (1024 SPP)</source>
+        <translation>Ultra (1024 SPP)</translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation>Custom</translation>
+    </message>
+    <message>
+        <source>SPP:</source>
+        <translation>SPP:</translation>
+    </message>
+    <message>
+        <source>Current:</source>
+        <translation>Current:</translation>
+    </message>
+    <message>
+        <source>%1 / %2</source>
+        <translation>%1 / %2</translation>
+    </message>
+    <message>
+        <source>Resolution</source>
+        <translation>Resolution</translation>
+    </message>
+    <message>
+        <source>720p (1280×720)</source>
+        <translation>720p (1280×720)</translation>
+    </message>
+    <message>
+        <source>1080p (1920×1080)</source>
+        <translation>1080p (1920×1080)</translation>
+    </message>
+    <message>
+        <source>1440p (2560×1440)</source>
+        <translation>1440p (2560×1440)</translation>
+    </message>
+    <message>
+        <source>4K (3840×2160)</source>
+        <translation>4K (3840×2160)</translation>
+    </message>
+    <message>
+        <source>Output</source>
+        <translation>Output</translation>
+    </message>
+    <message>
+        <source>Export...</source>
+        <translation>Export...</translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation>Reset</translation>
+    </message>
+    <message>
+        <source>Progressive</source>
+        <translation>Progressive</translation>
+    </message>
+</context>
+<context>
+    <name>SpectralConfigPanel</name>
+    <message>
+        <source>Spectral Mode</source>
+        <translation>Spectral Mode</translation>
+    </message>
+    <message>
+        <source>Mode:</source>
+        <translation>Mode:</translation>
+    </message>
+    <message>
+        <source>RGB Fused</source>
+        <translation>RGB Fused</translation>
+    </message>
+    <message>
+        <source>Single Wavelength</source>
+        <translation>Single Wavelength</translation>
+    </message>
+    <message>
+        <source>SWIR Fused</source>
+        <translation>SWIR Fused</translation>
+    </message>
+    <message>
+        <source>MWIR Fused</source>
+        <translation>MWIR Fused</translation>
+    </message>
+    <message>
+        <source>LWIR Fused</source>
+        <translation>LWIR Fused</translation>
+    </message>
+    <message>
+        <source>Standard visible light rendering with spectral-to-RGB conversion.</source>
+        <translation>Standard visible light rendering with spectral-to-RGB conversion.</translation>
+    </message>
+    <message>
+        <source>Render at a single wavelength for monochromatic analysis.</source>
+        <translation>Render at a single wavelength for monochromatic analysis.</translation>
+    </message>
+    <message>
+        <source>Short-wave infrared band (1.0-2.5 μm).</source>
+        <translation>Short-wave infrared band (1.0-2.5 μm).</translation>
+    </message>
+    <message>
+        <source>Mid-wave infrared band (3-5 μm).</source>
+        <translation>Mid-wave infrared band (3-5 μm).</translation>
+    </message>
+    <message>
+        <source>Long-wave infrared band (8-14 μm).</source>
+        <translation>Long-wave infrared band (8-14 μm).</translation>
+    </message>
+    <message>
+        <source>Wavelength</source>
+        <translation>Wavelength</translation>
+    </message>
+    <message>
+        <source>Wavelength Range</source>
+        <translation>Wavelength Range</translation>
+    </message>
+    <message>
+        <source>Min (nm):</source>
+        <translation>Min (nm):</translation>
+    </message>
+    <message>
+        <source>Max (nm):</source>
+        <translation>Max (nm):</translation>
+    </message>
+    <message>
+        <source>Step (nm):</source>
+        <translation>Step (nm):</translation>
+    </message>
+    <message>
+        <source>Bands: %1</source>
+        <translation>Bands: %1</translation>
+    </message>
+</context>
+<context>
+    <name>SceneTreePanel</name>
+    <message>
+        <source>Scene Hierarchy</source>
+        <translation>Scene Hierarchy</translation>
+    </message>
+    <message>
+        <source>No scene loaded</source>
+        <translation>No scene loaded</translation>
+    </message>
+    <message>
+        <source>Scene: %1</source>
+        <translation>Scene: %1</translation>
+    </message>
+    <message>
+        <source>Meshes</source>
+        <translation>Meshes</translation>
+    </message>
+    <message>
+        <source>Materials</source>
+        <translation>Materials</translation>
+    </message>
+    <message>
+        <source>Nodes</source>
+        <translation>Nodes</translation>
+    </message>
+    <message>
+        <source>%1 (%2 triangles)</source>
+        <translation>%1 (%2 triangles)</translation>
+    </message>
+</context>
+<context>
+    <name>MaterialEditorPanel</name>
+    <message>
+        <source>Material Properties</source>
+        <translation>Material Properties</translation>
+    </message>
+    <message>
+        <source>No material selected</source>
+        <translation>No material selected</translation>
+    </message>
+    <message>
+        <source>Base Color</source>
+        <translation>Base Color</translation>
+    </message>
+    <message>
+        <source>Albedo:</source>
+        <translation>Albedo:</translation>
+    </message>
+    <message>
+        <source>PBR Parameters</source>
+        <translation>PBR Parameters</translation>
+    </message>
+    <message>
+        <source>Metallic:</source>
+        <translation>Metallic:</translation>
+    </message>
+    <message>
+        <source>Roughness:</source>
+        <translation>Roughness:</translation>
+    </message>
+    <message>
+        <source>IOR:</source>
+        <translation>IOR:</translation>
+    </message>
+    <message>
+        <source>Emission</source>
+        <translation>Emission</translation>
+    </message>
+    <message>
+        <source>Color:</source>
+        <translation>Color:</translation>
+    </message>
+    <message>
+        <source>Strength:</source>
+        <translation>Strength:</translation>
+    </message>
+    <message>
+        <source>Spectral</source>
+        <translation>Spectral</translation>
+    </message>
+    <message>
+        <source>Spectral Curve:</source>
+        <translation>Spectral Curve:</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>None</translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation>Reset</translation>
+    </message>
+</context>
+<context>
+    <name>ConfigManager</name>
+    <message>
+        <source>Cannot open file for writing: %1</source>
+        <translation>Cannot open file for writing: %1</translation>
     </message>
 </context>
 </TS>

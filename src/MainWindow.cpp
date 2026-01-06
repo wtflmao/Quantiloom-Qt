@@ -18,6 +18,7 @@
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
+#include <QActionGroup>
 #include <QDockWidget>
 #include <QTabWidget>
 #include <QStatusBar>
@@ -28,6 +29,7 @@
 #include <QCloseEvent>
 #include <QVBoxLayout>
 #include <QFileInfo>
+#include <QSettings>
 
 #include <core/Types.hpp>
 #include <scene/Material.hpp>
@@ -39,7 +41,7 @@ MainWindow::MainWindow(QVulkanInstance* vulkanInstance, QWidget* parent)
     : QMainWindow(parent)
     , m_vulkanInstance(vulkanInstance)
 {
-    setWindowTitle(tr("Quantiloom - Spectral Path Tracer"));
+    setWindowTitle(tr("Quantiloom - Spectral Renderer"));
     setMinimumSize(1280, 720);
     resize(1600, 900);
 
@@ -121,6 +123,40 @@ void MainWindow::setupMenus() {
 
     QAction* stopRenderAction = renderMenu->addAction(tr("S&top Render"), this, &MainWindow::onStopRender);
     stopRenderAction->setShortcut(QKeySequence(Qt::Key_Escape));
+
+    // Settings menu
+    QMenu* settingsMenu = menuBar()->addMenu(tr("&Settings"));
+
+    // Language submenu
+    QMenu* languageMenu = settingsMenu->addMenu(tr("&Language"));
+    QActionGroup* languageGroup = new QActionGroup(this);
+    languageGroup->setExclusive(true);
+
+    // Get current language setting
+    QSettings settings;
+    QString currentLocale = settings.value("language", "").toString();
+
+    // English option
+    QAction* englishAction = languageMenu->addAction("English");
+    englishAction->setCheckable(true);
+    englishAction->setData("en");
+    languageGroup->addAction(englishAction);
+    if (currentLocale.isEmpty() || currentLocale.startsWith("en")) {
+        englishAction->setChecked(true);
+    }
+
+    // Chinese option
+    QAction* chineseAction = languageMenu->addAction(QString::fromUtf8("中文"));
+    chineseAction->setCheckable(true);
+    chineseAction->setData("zh_CN");
+    languageGroup->addAction(chineseAction);
+    if (currentLocale.startsWith("zh")) {
+        chineseAction->setChecked(true);
+    }
+
+    connect(languageGroup, &QActionGroup::triggered, this, [this](QAction* action) {
+        onLanguageChanged(action->data().toString());
+    });
 
     // Help menu
     QMenu* helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -333,6 +369,23 @@ void MainWindow::onAbout() {
            "</ul>"
            "<p>Copyright (c) 2025-2026 wtflmao</p>")
     );
+}
+
+void MainWindow::onLanguageChanged(const QString& locale) {
+    QSettings settings;
+    QString currentLocale = settings.value("language", "").toString();
+
+    // Only prompt if language actually changed
+    if (currentLocale != locale) {
+        settings.setValue("language", locale);
+
+        QMessageBox::information(
+            this,
+            tr("Language Changed"),
+            tr("The language setting has been changed.\n"
+               "Please restart the application for the changes to take effect.")
+        );
+    }
 }
 
 void MainWindow::onFrameRendered(float frameTimeMs, uint32_t sampleCount) {
