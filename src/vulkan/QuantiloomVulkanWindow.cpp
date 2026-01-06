@@ -7,12 +7,17 @@
 
 #include "QuantiloomVulkanWindow.hpp"
 #include "QuantiloomVulkanRenderer.hpp"
+#include "../editing/SelectionManager.hpp"
+#include "../editing/TransformGizmo.hpp"
+#include "../editing/UndoStack.hpp"
+#include "../editing/Commands.hpp"
 
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <QDebug>
 
+#include <renderer/ExternalRenderContext.hpp>
 #include <renderer/LightingParams.hpp>
 #include <scene/Material.hpp>
 #include <scene/Scene.hpp>
@@ -182,10 +187,119 @@ const quantiloom::Scene* QuantiloomVulkanWindow::getScene() const {
 }
 
 // ============================================================================
+// Scene Editing
+// ============================================================================
+
+void QuantiloomVulkanWindow::setEditingComponents(SelectionManager* selection,
+                                                   TransformGizmo* gizmo,
+                                                   UndoStack* undoStack) {
+    m_selection = selection;
+    m_gizmo = gizmo;
+    m_undoStack = undoStack;
+}
+
+void QuantiloomVulkanWindow::setNodeTransform(int nodeIndex, const glm::mat4& transform) {
+    if (!m_renderer) return;
+
+    auto* ctx = m_renderer->getRenderContext();
+    if (ctx && nodeIndex >= 0) {
+        qDebug() << "QuantiloomVulkanWindow::setNodeTransform - node:" << nodeIndex;
+        ctx->SetNodeTransform(static_cast<quantiloom::u32>(nodeIndex), transform);
+        ctx->RebuildAccelerationStructure();
+        m_renderer->resetAccumulation();
+    }
+}
+
+void QuantiloomVulkanWindow::getCameraInfo(glm::vec3& position, glm::vec3& forward,
+                                            glm::vec3& right, glm::vec3& up) const {
+    if (m_renderer) {
+        m_renderer->getCameraInfo(position, forward, right, up);
+    } else {
+        position = glm::vec3(0, 0, 5);
+        forward = glm::vec3(0, 0, -1);
+        right = glm::vec3(1, 0, 0);
+        up = glm::vec3(0, 1, 0);
+    }
+}
+
+void QuantiloomVulkanWindow::setEditMode(bool edit) {
+    if (m_editMode != edit) {
+        m_editMode = edit;
+        emit editModeChanged(edit);
+    }
+}
+
+// ============================================================================
 // Input Event Handlers
 // ============================================================================
 
 void QuantiloomVulkanWindow::keyPressEvent(QKeyEvent* event) {
+    // Edit mode hotkeys (always active)
+    if (m_editMode && m_gizmo) {
+        switch (event->key()) {
+            case Qt::Key_G:  // Grab/Translate
+                m_gizmo->setMode(TransformGizmo::Mode::Translate);
+                event->accept();
+                return;
+            case Qt::Key_R:  // Rotate (not camera rotate)
+                if (!(event->modifiers() & Qt::ControlModifier)) {
+                    m_gizmo->setMode(TransformGizmo::Mode::Rotate);
+                    event->accept();
+                    return;
+                }
+                break;
+            case Qt::Key_T:  // Transform/Scale
+                m_gizmo->setMode(TransformGizmo::Mode::Scale);
+                event->accept();
+                return;
+            case Qt::Key_X:
+                m_gizmo->toggleAxisConstraint(TransformGizmo::Axis::X);
+                event->accept();
+                return;
+            case Qt::Key_Y:
+                m_gizmo->toggleAxisConstraint(TransformGizmo::Axis::Y);
+                event->accept();
+                return;
+            case Qt::Key_Z:
+                if (!(event->modifiers() & Qt::ControlModifier)) {
+                    m_gizmo->toggleAxisConstraint(TransformGizmo::Axis::Z);
+                    event->accept();
+                    return;
+                }
+                break;
+            case Qt::Key_Space:
+                m_gizmo->toggleSpace();
+                event->accept();
+                return;
+            case Qt::Key_Escape:
+                if (m_transformDragging && m_gizmo->isDragging()) {
+                    m_gizmo->endDrag();
+                    m_transformDragging = false;
+                    // TODO: Revert transform
+                }
+                if (m_selection) {
+                    m_selection->clearSelection();
+                }
+                event->accept();
+                return;
+        }
+    }
+
+    // Undo/Redo
+    if (m_undoStack) {
+        if (event->matches(QKeySequence::Undo)) {
+            m_undoStack->undo();
+            event->accept();
+            return;
+        }
+        if (event->matches(QKeySequence::Redo)) {
+            m_undoStack->redo();
+            event->accept();
+            return;
+        }
+    }
+
+    // Camera movement keys
     switch (event->key()) {
         case Qt::Key_W: m_keyW = true; break;
         case Qt::Key_A: m_keyA = true; break;
@@ -193,7 +307,10 @@ void QuantiloomVulkanWindow::keyPressEvent(QKeyEvent* event) {
         case Qt::Key_D: m_keyD = true; break;
         case Qt::Key_Q: m_keyQ = true; break;
         case Qt::Key_E: m_keyE = true; break;
-        case Qt::Key_Shift: m_shiftHeld = true; break;
+        case Qt::Key_Shift:
+            m_shiftHeld = true;
+            if (m_gizmo) m_gizmo->setFineControl(true);
+            break;
         default:
             QVulkanWindow::keyPressEvent(event);
             return;
@@ -213,7 +330,10 @@ void QuantiloomVulkanWindow::keyReleaseEvent(QKeyEvent* event) {
         case Qt::Key_D: m_keyD = false; break;
         case Qt::Key_Q: m_keyQ = false; break;
         case Qt::Key_E: m_keyE = false; break;
-        case Qt::Key_Shift: m_shiftHeld = false; break;
+        case Qt::Key_Shift:
+            m_shiftHeld = false;
+            if (m_gizmo) m_gizmo->setFineControl(false);
+            break;
         default:
             QVulkanWindow::keyReleaseEvent(event);
             return;
@@ -226,6 +346,37 @@ void QuantiloomVulkanWindow::keyReleaseEvent(QKeyEvent* event) {
 }
 
 void QuantiloomVulkanWindow::mousePressEvent(QMouseEvent* event) {
+    if (event->button() == Qt::LeftButton && m_editMode) {
+        // Edit mode: Left click for selection or transform start
+        if (m_selection && m_selection->hasSelection() && m_gizmo) {
+            // Start transform drag
+            m_transformDragging = true;
+            m_transformDragStart = event->position();
+
+            qDebug() << "Starting transform drag - hasSelection:" << m_selection->hasSelection()
+                     << "count:" << m_selection->selectionCount();
+
+            glm::vec3 camPos, camFwd, camRight, camUp;
+            getCameraInfo(camPos, camFwd, camRight, camUp);
+
+            // Set pivot at selection center
+            const auto* scene = getScene();
+            if (scene) {
+                glm::vec3 pivot = m_selection->computeSelectionCenter(scene);
+                m_gizmo->setPivot(pivot);
+                qDebug() << "  Pivot:" << pivot.x << pivot.y << pivot.z;
+            }
+
+            m_gizmo->beginDrag(event->position(), camPos, camFwd, camRight, camUp);
+        } else {
+            qDebug() << "No selection - emitting viewportClicked";
+            // Click for selection
+            emit viewportClicked(event->position());
+        }
+        event->accept();
+        return;
+    }
+
     if (event->button() == Qt::RightButton || event->button() == Qt::MiddleButton) {
         m_mousePressed = true;
         m_lastMousePos = event->position();
@@ -236,6 +387,16 @@ void QuantiloomVulkanWindow::mousePressEvent(QMouseEvent* event) {
 }
 
 void QuantiloomVulkanWindow::mouseReleaseEvent(QMouseEvent* event) {
+    if (event->button() == Qt::LeftButton && m_transformDragging) {
+        m_transformDragging = false;
+        if (m_gizmo && m_gizmo->isDragging()) {
+            m_gizmo->endDrag();
+            // Note: The undo command is pushed in MainWindow when transform finishes
+        }
+        event->accept();
+        return;
+    }
+
     if (event->button() == Qt::RightButton || event->button() == Qt::MiddleButton) {
         m_mousePressed = false;
         event->accept();
@@ -245,6 +406,13 @@ void QuantiloomVulkanWindow::mouseReleaseEvent(QMouseEvent* event) {
 }
 
 void QuantiloomVulkanWindow::mouseMoveEvent(QMouseEvent* event) {
+    // Transform dragging has priority
+    if (m_transformDragging && m_gizmo && m_gizmo->isDragging()) {
+        m_gizmo->updateDrag(event->position());
+        event->accept();
+        return;
+    }
+
     if (m_mousePressed && m_renderer) {
         QPointF delta = event->position() - m_lastMousePos;
         m_lastMousePos = event->position();

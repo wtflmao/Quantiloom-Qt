@@ -6,6 +6,7 @@
 #pragma once
 
 #include <QWidget>
+#include <QSet>
 
 QT_BEGIN_NAMESPACE
 class QTreeWidget;
@@ -29,6 +30,17 @@ public:
     void setScene(const quantiloom::Scene* scene);
     void refresh();
 
+    /**
+     * @brief Highlight nodes selected via SelectionManager
+     * @param nodeIndices Set of node indices to highlight
+     */
+    void setSelectedNodes(const QSet<int>& nodeIndices);
+
+    /**
+     * @brief Clear all visual selection highlights
+     */
+    void clearSelectionHighlight();
+
 signals:
     void nodeSelected(int nodeIndex);
     void materialSelected(int materialIndex);
@@ -38,7 +50,9 @@ private slots:
 
 private:
     void populateTree();
+    QTreeWidgetItem* findNodeItem(int nodeIndex);
 
     QTreeWidget* m_tree = nullptr;
     const quantiloom::Scene* m_scene = nullptr;
+    QSet<int> m_highlightedNodes;
 };

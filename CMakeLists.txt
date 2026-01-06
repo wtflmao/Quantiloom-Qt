@@ -117,6 +117,15 @@ set(GUI_SOURCES
     # Configuration management
     src/config/ConfigManager.cpp
     src/config/ConfigManager.hpp
+    # Editing system
+    src/editing/SelectionManager.cpp
+    src/editing/SelectionManager.hpp
+    src/editing/UndoStack.cpp
+    src/editing/UndoStack.hpp
+    src/editing/Commands.cpp
+    src/editing/Commands.hpp
+    src/editing/TransformGizmo.cpp
+    src/editing/TransformGizmo.hpp
 )
 
 # ============================================================================

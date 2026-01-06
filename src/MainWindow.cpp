@@ -13,8 +13,13 @@
 #include "panels/RenderSettingsPanel.hpp"
 #include "panels/SpectralConfigPanel.hpp"
 #include "config/ConfigManager.hpp"
+#include "editing/SelectionManager.hpp"
+#include "editing/TransformGizmo.hpp"
+#include "editing/UndoStack.hpp"
+#include "editing/Commands.hpp"
 
 #include <QApplication>
+#include <QGuiApplication>
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
@@ -30,12 +35,14 @@
 #include <QVBoxLayout>
 #include <QFileInfo>
 #include <QSettings>
+#include <QDebug>
 
 #include <core/Types.hpp>
 #include <scene/Material.hpp>
 #include <scene/Scene.hpp>
 #include <renderer/LightingParams.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 MainWindow::MainWindow(QVulkanInstance* vulkanInstance, QWidget* parent)
     : QMainWindow(parent)
@@ -52,6 +59,7 @@ MainWindow::MainWindow(QVulkanInstance* vulkanInstance, QWidget* parent)
     setupMenus();
     setupDockWidgets();
     setupStatusBar();
+    setupEditingSystem();
     setupConnections();
 }
 
@@ -104,8 +112,14 @@ void MainWindow::setupMenus() {
 
     // Edit menu
     QMenu* editMenu = menuBar()->addMenu(tr("&Edit"));
-    editMenu->addAction(tr("&Undo"))->setShortcut(QKeySequence::Undo);
-    editMenu->addAction(tr("&Redo"))->setShortcut(QKeySequence::Redo);
+    m_undoAction = editMenu->addAction(tr("&Undo"));
+    m_undoAction->setShortcut(QKeySequence::Undo);
+    m_undoAction->setEnabled(false);
+
+    m_redoAction = editMenu->addAction(tr("&Redo"));
+    m_redoAction->setShortcut(QKeySequence::Redo);
+    m_redoAction->setEnabled(false);
+
     editMenu->addSeparator();
     editMenu->addAction(tr("&Delete"))->setShortcut(QKeySequence::Delete);
 
@@ -192,7 +206,11 @@ void MainWindow::setupDockWidgets() {
 
     // Connect panel signals
     connect(m_sceneTreePanel, &SceneTreePanel::nodeSelected,
-            this, &MainWindow::onNodeSelected);
+            this, [this](int nodeIndex) {
+                // Sync with selection manager
+                bool addToSelection = QGuiApplication::keyboardModifiers() & Qt::ControlModifier;
+                m_selectionManager->select(nodeIndex, addToSelection);
+            });
     connect(m_sceneTreePanel, &SceneTreePanel::materialSelected,
             this, &MainWindow::onMaterialSelected);
 
@@ -217,11 +235,14 @@ void MainWindow::setupStatusBar() {
     m_statusLabel = new QLabel(tr("Ready"));
     m_fpsLabel = new QLabel(tr("FPS: --"));
     m_sampleCountLabel = new QLabel(tr("Samples: 0"));
+    m_editModeLabel = new QLabel(tr("[G] Translate"));
+    m_editModeLabel->setStyleSheet("QLabel { background-color: #4a90d9; color: white; padding: 2px 8px; border-radius: 3px; font-weight: bold; }");
     m_renderProgress = new QProgressBar();
     m_renderProgress->setMaximumWidth(200);
     m_renderProgress->setVisible(false);
 
     statusBar()->addWidget(m_statusLabel, 1);
+    statusBar()->addPermanentWidget(m_editModeLabel);
     statusBar()->addPermanentWidget(m_sampleCountLabel);
     statusBar()->addPermanentWidget(m_fpsLabel);
     statusBar()->addPermanentWidget(m_renderProgress);
@@ -243,6 +264,64 @@ void MainWindow::setupConnections() {
                     m_statusLabel->setText(tr("Failed to load scene"));
                 }
             });
+
+    // Connect viewport click for selection
+    connect(m_vulkanWindow, &QuantiloomVulkanWindow::viewportClicked,
+            this, &MainWindow::onViewportClicked);
+}
+
+void MainWindow::setupEditingSystem() {
+    // Create editing components
+    m_selectionManager = new SelectionManager(this);
+    m_transformGizmo = new TransformGizmo(this);
+    m_undoStack = new UndoStack(this);
+
+    // Pass to Vulkan window
+    m_vulkanWindow->setEditingComponents(m_selectionManager, m_transformGizmo, m_undoStack);
+
+    // Connect undo/redo actions
+    connect(m_undoAction, &QAction::triggered, m_undoStack, &UndoStack::undo);
+    connect(m_redoAction, &QAction::triggered, m_undoStack, &UndoStack::redo);
+
+    // Connect undo stack state changes
+    connect(m_undoStack, &UndoStack::canUndoChanged, this, &MainWindow::onUndoRedoChanged);
+    connect(m_undoStack, &UndoStack::canRedoChanged, this, &MainWindow::onUndoRedoChanged);
+
+    // Connect selection changes
+    connect(m_selectionManager, &SelectionManager::selectionChanged,
+            this, &MainWindow::onSelectionChanged);
+
+    // Connect gizmo transform changes
+    connect(m_transformGizmo, &TransformGizmo::transformChanged,
+            this, &MainWindow::onGizmoTransformChanged);
+    connect(m_transformGizmo, &TransformGizmo::transformFinished,
+            this, &MainWindow::onGizmoTransformFinished);
+
+    // Update status bar when gizmo mode changes
+    connect(m_transformGizmo, &TransformGizmo::modeChanged,
+            this, [this](TransformGizmo::Mode mode) {
+                QString modeText;
+                switch (mode) {
+                    case TransformGizmo::Mode::Translate:
+                        modeText = tr("[G] Translate");
+                        break;
+                    case TransformGizmo::Mode::Rotate:
+                        modeText = tr("[R] Rotate");
+                        break;
+                    case TransformGizmo::Mode::Scale:
+                        modeText = tr("[T] Scale");
+                        break;
+                }
+                m_editModeLabel->setText(modeText);
+                m_statusLabel->setText(tr("Mode: %1").arg(modeText));
+            });
+
+    // Sync selection with scene tree panel (highlight selected items)
+    connect(m_selectionManager, &SelectionManager::selectionChanged,
+            m_sceneTreePanel, &SceneTreePanel::setSelectedNodes);
+
+    connect(m_selectionManager, &SelectionManager::selectionCleared,
+            m_sceneTreePanel, &SceneTreePanel::clearSelectionHighlight);
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
@@ -401,12 +480,6 @@ void MainWindow::onFrameRendered(float frameTimeMs, uint32_t sampleCount) {
 // Panel Slots
 // ============================================================================
 
-void MainWindow::onNodeSelected(int nodeIndex) {
-    Q_UNUSED(nodeIndex);
-    // TODO: Highlight selected node in viewport
-    m_statusLabel->setText(tr("Node %1 selected").arg(nodeIndex));
-}
-
 void MainWindow::onMaterialSelected(int materialIndex) {
     // Get scene from vulkan window
     const quantiloom::Scene* scene = m_vulkanWindow->getScene();
@@ -474,6 +547,9 @@ void MainWindow::updatePanelsFromScene() {
         // Update spectral config
         m_spectralConfigPanel->setWavelengthRange(
             scene->lambda_min, scene->lambda_max, scene->delta_lambda);
+
+        // Show helpful hint in status bar
+        m_statusLabel->setText(tr("Scene loaded - Click a node in Scene panel to select, use G/R/T keys to change transform mode"));
     }
 }
 
@@ -576,4 +652,153 @@ void MainWindow::collectCurrentConfig(SceneConfig& config) {
     // Lighting is populated via the panel's emit signals
     // For now, use default or last known values
     config.lighting = quantiloom::CreateDefaultLightingParams();
+}
+
+// ============================================================================
+// Editing Slots
+// ============================================================================
+
+void MainWindow::onViewportClicked(const QPointF& screenPos) {
+    // Simple selection: for now, cycle through nodes based on click
+    // A proper implementation would do ray casting
+    // For MVP, we select from scene tree instead
+
+    Q_UNUSED(screenPos);
+
+    // Clear selection on empty click
+    // Note: Real picking would cast a ray and find intersecting geometry
+    // For now, users select via the scene tree panel
+    m_statusLabel->setText(tr("Click in Scene panel to select objects"));
+}
+
+void MainWindow::onSelectionChanged(const QSet<int>& selectedNodes) {
+    qDebug() << "Selection changed:" << selectedNodes.size() << "nodes";
+
+    if (selectedNodes.isEmpty()) {
+        m_statusLabel->setText(tr("Selection cleared - click a node in Scene panel to select"));
+        m_transformStartStates.clear();
+    } else if (selectedNodes.size() == 1) {
+        int nodeIndex = *selectedNodes.constBegin();
+
+        // Get node name for display
+        QString nodeName = QString("Node %1").arg(nodeIndex);
+        const auto* scene = m_vulkanWindow->getScene();
+        if (scene && nodeIndex >= 0 && static_cast<size_t>(nodeIndex) < scene->nodes.size()) {
+            const auto& node = scene->nodes[static_cast<size_t>(nodeIndex)];
+            if (node.meshIndex < scene->meshes.size()) {
+                const auto& mesh = scene->meshes[node.meshIndex];
+                if (!mesh.name.empty()) {
+                    nodeName = QString::fromStdString(mesh.name);
+                }
+            }
+        }
+
+        m_statusLabel->setText(tr("'%1' selected - Left-drag in viewport to transform").arg(nodeName));
+
+        // Store original transform for undo
+        if (scene && nodeIndex >= 0 && static_cast<size_t>(nodeIndex) < scene->nodes.size()) {
+            m_transformStartStates.clear();
+            m_transformStartStates.push_back({
+                nodeIndex,
+                scene->nodes[static_cast<size_t>(nodeIndex)].transform
+            });
+        }
+    } else {
+        m_statusLabel->setText(tr("%1 objects selected - Left-drag in viewport to transform").arg(selectedNodes.size()));
+
+        // Store all original transforms
+        const auto* scene = m_vulkanWindow->getScene();
+        if (scene) {
+            m_transformStartStates.clear();
+            for (int nodeIndex : selectedNodes) {
+                if (nodeIndex >= 0 && static_cast<size_t>(nodeIndex) < scene->nodes.size()) {
+                    m_transformStartStates.push_back({
+                        nodeIndex,
+                        scene->nodes[static_cast<size_t>(nodeIndex)].transform
+                    });
+                }
+            }
+        }
+    }
+}
+
+void MainWindow::onGizmoTransformChanged(const glm::vec3& translation,
+                                          const glm::quat& rotation,
+                                          const glm::vec3& scale) {
+    Q_UNUSED(rotation);
+    Q_UNUSED(scale);
+
+    // Apply transform delta to all selected nodes
+    const auto* scene = m_vulkanWindow->getScene();
+    if (!scene || m_transformStartStates.empty()) {
+        return;
+    }
+
+    qDebug() << "Transform delta:" << translation.x << translation.y << translation.z;
+
+    for (const auto& state : m_transformStartStates) {
+        glm::mat4 newTransform = m_transformGizmo->applyDelta(state.originalTransform);
+        m_vulkanWindow->setNodeTransform(state.nodeIndex, newTransform);
+        qDebug() << "  Applied transform to node" << state.nodeIndex;
+    }
+
+    m_sceneModified = true;
+}
+
+void MainWindow::onGizmoTransformFinished() {
+    // Create undo command for the transform
+    const auto* scene = m_vulkanWindow->getScene();
+    if (!scene || m_transformStartStates.empty()) {
+        return;
+    }
+
+    if (m_transformStartStates.size() == 1) {
+        // Single node transform
+        const auto& state = m_transformStartStates[0];
+        if (state.nodeIndex >= 0 && static_cast<size_t>(state.nodeIndex) < scene->nodes.size()) {
+            glm::mat4 newTransform = scene->nodes[static_cast<size_t>(state.nodeIndex)].transform;
+
+            // Only push command if transform actually changed
+            if (newTransform != state.originalTransform) {
+                auto cmd = std::make_unique<TransformNodeCommand>(
+                    m_vulkanWindow,
+                    state.nodeIndex,
+                    state.originalTransform,
+                    newTransform
+                );
+                m_undoStack->push(std::move(cmd));
+            }
+        }
+    } else {
+        // Multi-node transform
+        std::vector<MultiTransformCommand::NodeTransform> transforms;
+
+        for (const auto& state : m_transformStartStates) {
+            if (state.nodeIndex >= 0 && static_cast<size_t>(state.nodeIndex) < scene->nodes.size()) {
+                glm::mat4 newTransform = scene->nodes[static_cast<size_t>(state.nodeIndex)].transform;
+                if (newTransform != state.originalTransform) {
+                    transforms.push_back({
+                        state.nodeIndex,
+                        state.originalTransform,
+                        newTransform
+                    });
+                }
+            }
+        }
+
+        if (!transforms.empty()) {
+            auto cmd = std::make_unique<MultiTransformCommand>(m_vulkanWindow, transforms);
+            m_undoStack->push(std::move(cmd));
+        }
+    }
+
+    // Update start states for next transform
+    onSelectionChanged(m_selectionManager->selectedNodes());
+}
+
+void MainWindow::onUndoRedoChanged() {
+    m_undoAction->setEnabled(m_undoStack->canUndo());
+    m_redoAction->setEnabled(m_undoStack->canRedo());
+    m_undoAction->setText(m_undoStack->undoText());
+    m_redoAction->setText(m_undoStack->redoText());
 }

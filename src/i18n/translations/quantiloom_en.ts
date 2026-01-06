@@ -288,6 +288,50 @@
         <translation>Failed to load scene</translation>
     </message>
     <message>
+        <source>Click in Scene panel to select objects</source>
+        <translation>Click in Scene panel to select objects</translation>
+    </message>
+    <message>
+        <source>Selection cleared</source>
+        <translation>Selection cleared</translation>
+    </message>
+    <message>
+        <source>%1 objects selected</source>
+        <translation>%1 objects selected</translation>
+    </message>
+    <message>
+        <source>Selection cleared - click a node in Scene panel to select</source>
+        <translation>Selection cleared - click a node in Scene panel to select</translation>
+    </message>
+    <message>
+        <source>'%1' selected - Left-drag in viewport to transform</source>
+        <translation>'%1' selected - Left-drag in viewport to transform</translation>
+    </message>
+    <message>
+        <source>%1 objects selected - Left-drag in viewport to transform</source>
+        <translation>%1 objects selected - Left-drag in viewport to transform</translation>
+    </message>
+    <message>
+        <source>Scene loaded - Click a node in Scene panel to select, use G/R/T keys to change transform mode</source>
+        <translation>Scene loaded - Click a node in Scene panel to select, use G/R/T keys to change transform mode</translation>
+    </message>
+    <message>
+        <source>[G] Translate</source>
+        <translation>[G] Translate</translation>
+    </message>
+    <message>
+        <source>[R] Rotate</source>
+        <translation>[R] Rotate</translation>
+    </message>
+    <message>
+        <source>[T] Scale</source>
+        <translation>[T] Scale</translation>
+    </message>
+    <message>
+        <source>Mode: %1</source>
+        <translation>Mode: %1</translation>
+    </message>
+    <message>
         <source>&amp;Settings</source>
         <translation>&amp;Settings</translation>
     </message>
@@ -558,6 +602,66 @@ This may take a few minutes.</translation>
         <source>%1 (%2 triangles)</source>
         <translation>%1 (%2 triangles)</translation>
     </message>
+    <message>
+        <source>Controls</source>
+        <translation>Controls</translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;Selection:&lt;/b&gt; Click node above&lt;br&gt;&lt;b&gt;Transform:&lt;/b&gt; Select node, then Left-drag in viewport&lt;br&gt;&lt;b&gt;Mode:&lt;/b&gt; G=Move, R=Rotate, T=Scale&lt;br&gt;&lt;b&gt;Axis:&lt;/b&gt; X/Y/Z to constrain&lt;br&gt;&lt;b&gt;Camera:&lt;/b&gt; Right-drag=Orbit, Middle-drag=Pan, Wheel=Zoom&lt;br&gt;&lt;b&gt;Undo:&lt;/b&gt; Ctrl+Z / Ctrl+Y</source>
+        <translation>&lt;b&gt;Selection:&lt;/b&gt; Click node above&lt;br&gt;&lt;b&gt;Transform:&lt;/b&gt; Select node, then Left-drag in viewport&lt;br&gt;&lt;b&gt;Mode:&lt;/b&gt; G=Move, R=Rotate, T=Scale&lt;br&gt;&lt;b&gt;Axis:&lt;/b&gt; X/Y/Z to constrain&lt;br&gt;&lt;b&gt;Camera:&lt;/b&gt; Right-drag=Orbit, Middle-drag=Pan, Wheel=Zoom&lt;br&gt;&lt;b&gt;Undo:&lt;/b&gt; Ctrl+Z / Ctrl+Y</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation>Name</translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation>Type</translation>
+    </message>
+    <message>
+        <source>Scene</source>
+        <translation>Scene</translation>
+    </message>
+    <message>
+        <source>Group</source>
+        <translation>Group</translation>
+    </message>
+    <message>
+        <source>Nodes (%1)</source>
+        <translation>Nodes (%1)</translation>
+    </message>
+    <message>
+        <source>Materials (%1)</source>
+        <translation>Materials (%1)</translation>
+    </message>
+    <message>
+        <source>Textures (%1)</source>
+        <translation>Textures (%1)</translation>
+    </message>
+    <message>
+        <source>Node</source>
+        <translation>Node</translation>
+    </message>
+    <message>
+        <source>Material</source>
+        <translation>Material</translation>
+    </message>
+    <message>
+        <source>Statistics</source>
+        <translation>Statistics</translation>
+    </message>
+    <message>
+        <source>Info</source>
+        <translation>Info</translation>
+    </message>
+    <message>
+        <source>Triangles</source>
+        <translation>Triangles</translation>
+    </message>
+    <message>
+        <source>Vertices</source>
+        <translation>Vertices</translation>
+    </message>
 </context>
 <context>
     <name>MaterialEditorPanel</name>
@@ -627,6 +731,47 @@ This may take a few minutes.</translation>
     <message>
         <source>Cannot open file for writing: %1</source>
         <translation>Cannot open file for writing: %1</translation>
+    </message>
+</context>
+<context>
+    <name>UndoStack</name>
+    <message>
+        <source>Undo</source>
+        <translation>Undo</translation>
+    </message>
+    <message>
+        <source>Undo %1</source>
+        <translation>Undo %1</translation>
+    </message>
+    <message>
+        <source>Redo</source>
+        <translation>Redo</translation>
+    </message>
+    <message>
+        <source>Redo %1</source>
+        <translation>Redo %1</translation>
+    </message>
+</context>
+<context>
+    <name>Commands</name>
+    <message>
+        <source>Transform Node</source>
+        <translation>Transform Node</translation>
+    </message>
+    <message numerus="yes">
+        <source>Transform %n Node(s)</source>
+        <translation>
+            <numerusform>Transform %n Node</numerusform>
+            <numerusform>Transform %n Nodes</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Modify Material</source>
+        <translation>Modify Material</translation>
+    </message>
+    <message>
+        <source>Change Selection</source>
+        <translation>Change Selection</translation>
     </message>
 </context>
 </TS>

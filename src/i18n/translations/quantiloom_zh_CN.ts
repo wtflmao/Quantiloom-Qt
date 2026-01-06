@@ -292,6 +292,50 @@
         <translation>场景加载失败</translation>
     </message>
     <message>
+        <source>Click in Scene panel to select objects</source>
+        <translation>点击场景面板选择对象</translation>
+    </message>
+    <message>
+        <source>Selection cleared</source>
+        <translation>选择已清除</translation>
+    </message>
+    <message>
+        <source>%1 objects selected</source>
+        <translation>已选中 %1 个对象</translation>
+    </message>
+    <message>
+        <source>Selection cleared - click a node in Scene panel to select</source>
+        <translation>选择已清除 - 点击场景面板中的节点进行选择</translation>
+    </message>
+    <message>
+        <source>'%1' selected - Left-drag in viewport to transform</source>
+        <translation>已选中 '%1' - 在视口中左键拖拽进行变换</translation>
+    </message>
+    <message>
+        <source>%1 objects selected - Left-drag in viewport to transform</source>
+        <translation>已选中 %1 个对象 - 在视口中左键拖拽进行变换</translation>
+    </message>
+    <message>
+        <source>Scene loaded - Click a node in Scene panel to select, use G/R/T keys to change transform mode</source>
+        <translation>场景已加载 - 点击场景面板中的节点进行选择，使用 G/R/T 键切换变换模式</translation>
+    </message>
+    <message>
+        <source>[G] Translate</source>
+        <translation>[G] 移动</translation>
+    </message>
+    <message>
+        <source>[R] Rotate</source>
+        <translation>[R] 旋转</translation>
+    </message>
+    <message>
+        <source>[T] Scale</source>
+        <translation>[T] 缩放</translation>
+    </message>
+    <message>
+        <source>Mode: %1</source>
+        <translation>模式: %1</translation>
+    </message>
+    <message>
         <source>&amp;Settings</source>
         <translation>设置(&amp;S)</translation>
     </message>
@@ -562,6 +606,66 @@ This may take a few minutes.</source>
         <source>%1 (%2 triangles)</source>
         <translation>%1 (%2 三角形)</translation>
     </message>
+    <message>
+        <source>Controls</source>
+        <translation>操作说明</translation>
+    </message>
+    <message>
+        <source>&lt;b&gt;Selection:&lt;/b&gt; Click node above&lt;br&gt;&lt;b&gt;Transform:&lt;/b&gt; Select node, then Left-drag in viewport&lt;br&gt;&lt;b&gt;Mode:&lt;/b&gt; G=Move, R=Rotate, T=Scale&lt;br&gt;&lt;b&gt;Axis:&lt;/b&gt; X/Y/Z to constrain&lt;br&gt;&lt;b&gt;Camera:&lt;/b&gt; Right-drag=Orbit, Middle-drag=Pan, Wheel=Zoom&lt;br&gt;&lt;b&gt;Undo:&lt;/b&gt; Ctrl+Z / Ctrl+Y</source>
+        <translation>&lt;b&gt;选择:&lt;/b&gt; 点击上方节点&lt;br&gt;&lt;b&gt;变换:&lt;/b&gt; 选中节点后，在视口中左键拖拽&lt;br&gt;&lt;b&gt;模式:&lt;/b&gt; G=移动, R=旋转, T=缩放&lt;br&gt;&lt;b&gt;轴约束:&lt;/b&gt; X/Y/Z 限制轴向&lt;br&gt;&lt;b&gt;相机:&lt;/b&gt; 右键拖拽=环绕, 中键拖拽=平移, 滚轮=缩放&lt;br&gt;&lt;b&gt;撤销:&lt;/b&gt; Ctrl+Z / Ctrl+Y</translation>
+    </message>
+    <message>
+        <source>Name</source>
+        <translation>名称</translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation>类型</translation>
+    </message>
+    <message>
+        <source>Scene</source>
+        <translation>场景</translation>
+    </message>
+    <message>
+        <source>Group</source>
+        <translation>组</translation>
+    </message>
+    <message>
+        <source>Nodes (%1)</source>
+        <translation>节点 (%1)</translation>
+    </message>
+    <message>
+        <source>Materials (%1)</source>
+        <translation>材质 (%1)</translation>
+    </message>
+    <message>
+        <source>Textures (%1)</source>
+        <translation>纹理 (%1)</translation>
+    </message>
+    <message>
+        <source>Node</source>
+        <translation>节点</translation>
+    </message>
+    <message>
+        <source>Material</source>
+        <translation>材质</translation>
+    </message>
+    <message>
+        <source>Statistics</source>
+        <translation>统计</translation>
+    </message>
+    <message>
+        <source>Info</source>
+        <translation>信息</translation>
+    </message>
+    <message>
+        <source>Triangles</source>
+        <translation>三角形</translation>
+    </message>
+    <message>
+        <source>Vertices</source>
+        <translation>顶点</translation>
+    </message>
 </context>
 <context>
     <name>MaterialEditorPanel</name>
@@ -631,6 +735,46 @@ This may take a few minutes.</source>
     <message>
         <source>Cannot open file for writing: %1</source>
         <translation>无法写入文件: %1</translation>
+    </message>
+</context>
+<context>
+    <name>UndoStack</name>
+    <message>
+        <source>Undo</source>
+        <translation>撤销</translation>
+    </message>
+    <message>
+        <source>Undo %1</source>
+        <translation>撤销 %1</translation>
+    </message>
+    <message>
+        <source>Redo</source>
+        <translation>重做</translation>
+    </message>
+    <message>
+        <source>Redo %1</source>
+        <translation>重做 %1</translation>
+    </message>
+</context>
+<context>
+    <name>Commands</name>
+    <message>
+        <source>Transform Node</source>
+        <translation>变换节点</translation>
+    </message>
+    <message numerus="yes">
+        <source>Transform %n Node(s)</source>
+        <translation>
+            <numerusform>变换 %n 个节点</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Modify Material</source>
+        <translation>修改材质</translation>
+    </message>
+    <message>
+        <source>Change Selection</source>
+        <translation>更改选择</translation>
     </message>
 </context>
 </TS>

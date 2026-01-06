@@ -66,6 +66,13 @@ public:
     // Scene access
     const quantiloom::Scene* getScene() const;
 
+    // Camera info for gizmo
+    void getCameraInfo(glm::vec3& position, glm::vec3& forward,
+                       glm::vec3& right, glm::vec3& up) const;
+
+    // Render context access (for transform operations)
+    quantiloom::ExternalRenderContext* getRenderContext() { return m_renderContext.get(); }
+
     // Camera control
     void updateCameraMovement(bool forward, bool backward, bool left, bool right,
                               bool up, bool down, bool fast);

@@ -9,9 +9,13 @@
 
 #include <QMainWindow>
 #include <QVulkanInstance>
+#include <QSet>
 #include <memory>
+#include <vector>
 
 #include <core/Types.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 QT_BEGIN_NAMESPACE
 class QDockWidget;
@@ -19,6 +23,7 @@ class QTabWidget;
 class QStatusBar;
 class QProgressBar;
 class QLabel;
+class QAction;
 QT_END_NAMESPACE
 
 namespace quantiloom {
@@ -34,6 +39,9 @@ class LightingPanel;
 class RenderSettingsPanel;
 class SpectralConfigPanel;
 class ConfigManager;
+class SelectionManager;
+class TransformGizmo;
+class UndoStack;
 struct SceneConfig;
 
 /**
@@ -81,7 +89,6 @@ private slots:
     void onFrameRendered(float frameTimeMs, uint32_t sampleCount);
 
     // Panel signals
-    void onNodeSelected(int nodeIndex);
     void onMaterialSelected(int materialIndex);
     void onMaterialChanged(int index, const quantiloom::Material& material);
     void onLightingChanged(const quantiloom::LightingParams& params);
@@ -90,12 +97,22 @@ private slots:
     void onWavelengthChanged(float wavelength_nm);
     void onResetAccumulation();
 
+    // Editing slots
+    void onViewportClicked(const QPointF& screenPos);
+    void onSelectionChanged(const QSet<int>& selectedNodes);
+    void onGizmoTransformChanged(const glm::vec3& translation,
+                                  const glm::quat& rotation,
+                                  const glm::vec3& scale);
+    void onGizmoTransformFinished();
+    void onUndoRedoChanged();
+
 private:
     void setupUi();
     void setupMenus();
     void setupDockWidgets();
     void setupStatusBar();
     void setupConnections();
+    void setupEditingSystem();
     void updatePanelsFromScene();
 
     // Vulkan instance (owned by main())
@@ -120,6 +137,7 @@ private:
     QLabel* m_statusLabel = nullptr;
     QLabel* m_fpsLabel = nullptr;
     QLabel* m_sampleCountLabel = nullptr;
+    QLabel* m_editModeLabel = nullptr;  // Shows current transform mode
     QProgressBar* m_renderProgress = nullptr;
 
     // Configuration manager
@@ -133,4 +151,20 @@ private:
     // Helper methods
     void applyConfig(const SceneConfig& config);
     void collectCurrentConfig(SceneConfig& config);
+
+    // Editing system
+    SelectionManager* m_selectionManager = nullptr;
+    TransformGizmo* m_transformGizmo = nullptr;
+    UndoStack* m_undoStack = nullptr;
+
+    // Menu actions for undo/redo
+    QAction* m_undoAction = nullptr;
+    QAction* m_redoAction = nullptr;
+
+    // Transform state for undo
+    struct TransformState {
+        int nodeIndex;
+        glm::mat4 originalTransform;
+    };
+    std::vector<TransformState> m_transformStartStates;
 };

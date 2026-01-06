@@ -336,6 +336,14 @@ const quantiloom::Scene* QuantiloomVulkanRenderer::getScene() const {
     return m_renderContext ? m_renderContext->GetScene() : nullptr;
 }
 
+void QuantiloomVulkanRenderer::getCameraInfo(glm::vec3& position, glm::vec3& forward,
+                                              glm::vec3& right, glm::vec3& up) const {
+    position = m_cameraPosition;
+    forward = glm::normalize(m_cameraTarget - m_cameraPosition);
+    right = glm::normalize(glm::cross(forward, m_cameraUp));
+    up = glm::cross(right, forward);
+}
+
 void QuantiloomVulkanRenderer::updateCameraMovement(
     bool forward, bool backward, bool left, bool right,
     bool up, bool down, bool fast)

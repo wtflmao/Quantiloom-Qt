@@ -8,6 +8,10 @@
 #include <QTreeWidget>
 #include <QVBoxLayout>
 #include <QHeaderView>
+#include <QBrush>
+#include <QColor>
+#include <QGroupBox>
+#include <QLabel>
 
 // SDK headers
 #include <scene/Scene.hpp>
@@ -17,7 +21,8 @@ SceneTreePanel::SceneTreePanel(QWidget* parent)
     : QWidget(parent)
 {
     auto* layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setContentsMargins(4, 4, 4, 4);
+    layout->setSpacing(4);
 
     m_tree = new QTreeWidget();
     m_tree->setHeaderLabels({tr("Name"), tr("Type")});
@@ -25,7 +30,28 @@ SceneTreePanel::SceneTreePanel(QWidget* parent)
     m_tree->setAlternatingRowColors(true);
     m_tree->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    layout->addWidget(m_tree);
+    layout->addWidget(m_tree, 1);  // stretch factor 1
+
+    // Operation hints group
+    auto* hintsGroup = new QGroupBox(tr("Controls"));
+    auto* hintsLayout = new QVBoxLayout(hintsGroup);
+    hintsLayout->setContentsMargins(6, 6, 6, 6);
+    hintsLayout->setSpacing(2);
+
+    auto* hintsLabel = new QLabel();
+    hintsLabel->setWordWrap(true);
+    hintsLabel->setStyleSheet("QLabel { color: #888; font-size: 11px; }");
+    hintsLabel->setText(
+        tr("<b>Selection:</b> Click node above<br>"
+           "<b>Transform:</b> Select node, then Left-drag in viewport<br>"
+           "<b>Mode:</b> G=Move, R=Rotate, T=Scale<br>"
+           "<b>Axis:</b> X/Y/Z to constrain<br>"
+           "<b>Camera:</b> Right-drag=Orbit, Middle-drag=Pan, Wheel=Zoom<br>"
+           "<b>Undo:</b> Ctrl+Z / Ctrl+Y")
+    );
+
+    hintsLayout->addWidget(hintsLabel);
+    layout->addWidget(hintsGroup);
 
     connect(m_tree, &QTreeWidget::itemClicked, this, &SceneTreePanel::onItemClicked);
 }
@@ -140,4 +166,67 @@ void SceneTreePanel::onItemClicked(QTreeWidgetItem* item, int /*column*/) {
     } else if (type == "material") {
         emit materialSelected(index);
     }
+}
+
+void SceneTreePanel::setSelectedNodes(const QSet<int>& nodeIndices) {
+    // Clear previous highlight
+    clearSelectionHighlight();
+
+    m_highlightedNodes = nodeIndices;
+
+    // Apply highlight to selected nodes
+    for (int nodeIndex : nodeIndices) {
+        QTreeWidgetItem* item = findNodeItem(nodeIndex);
+        if (item) {
+            item->setBackground(0, QColor(74, 144, 217));  // Blue highlight
+            item->setBackground(1, QColor(74, 144, 217));
+            item->setForeground(0, Qt::white);
+            item->setForeground(1, Qt::white);
+
+            // Ensure the item is visible
+            m_tree->scrollToItem(item);
+
+            // Select it in the tree as well
+            item->setSelected(true);
+        }
+    }
+}
+
+void SceneTreePanel::clearSelectionHighlight() {
+    // Remove highlight from previously highlighted nodes
+    for (int nodeIndex : m_highlightedNodes) {
+        QTreeWidgetItem* item = findNodeItem(nodeIndex);
+        if (item) {
+            item->setBackground(0, QBrush());  // Clear background
+            item->setBackground(1, QBrush());
+            item->setForeground(0, QBrush());  // Reset to default
+            item->setForeground(1, QBrush());
+            item->setSelected(false);
+        }
+    }
+    m_highlightedNodes.clear();
+}
+
+QTreeWidgetItem* SceneTreePanel::findNodeItem(int nodeIndex) {
+    // Find the Nodes group item
+    QTreeWidgetItem* sceneRoot = m_tree->topLevelItem(0);
+    if (!sceneRoot) return nullptr;
+
+    // First child of scene root should be Nodes group
+    for (int i = 0; i < sceneRoot->childCount(); ++i) {
+        QTreeWidgetItem* groupItem = sceneRoot->child(i);
+        if (groupItem->data(0, Qt::UserRole + 1).toString() == "Group" &&
+            groupItem->text(0).startsWith(tr("Nodes"))) {
+            // Search in the nodes group
+            for (int j = 0; j < groupItem->childCount(); ++j) {
+                QTreeWidgetItem* nodeItem = groupItem->child(j);
+                if (nodeItem->data(0, Qt::UserRole).toInt() == nodeIndex &&
+                    nodeItem->data(0, Qt::UserRole + 1).toString() == "node") {
+                    return nodeItem;
+                }
+            }
+            break;
+        }
+    }
+    return nullptr;
 }

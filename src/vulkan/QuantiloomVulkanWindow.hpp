@@ -22,6 +22,9 @@ struct LightingParams;
 }
 
 class QuantiloomVulkanRenderer;
+class SelectionManager;
+class TransformGizmo;
+class UndoStack;
 
 /**
  * @class QuantiloomVulkanWindow
@@ -100,6 +103,38 @@ public:
      */
     const quantiloom::Scene* getScene() const;
 
+    // ========================================================================
+    // Scene Editing
+    // ========================================================================
+
+    /**
+     * @brief Set editing components (owned by MainWindow)
+     */
+    void setEditingComponents(SelectionManager* selection,
+                               TransformGizmo* gizmo,
+                               UndoStack* undoStack);
+
+    /**
+     * @brief Set node transform
+     */
+    void setNodeTransform(int nodeIndex, const glm::mat4& transform);
+
+    /**
+     * @brief Get camera info for gizmo
+     */
+    void getCameraInfo(glm::vec3& position, glm::vec3& forward,
+                       glm::vec3& right, glm::vec3& up) const;
+
+    /**
+     * @brief Check if in edit mode (vs camera mode)
+     */
+    [[nodiscard]] bool isEditMode() const { return m_editMode; }
+
+    /**
+     * @brief Set edit mode
+     */
+    void setEditMode(bool edit);
+
 signals:
     /**
      * @brief Emitted after each frame is rendered
@@ -114,6 +149,17 @@ signals:
      * @param message Status message or error description
      */
     void sceneLoaded(bool success, const QString& message);
+
+    /**
+     * @brief Emitted when user clicks in viewport (for selection picking)
+     * @param screenPos Screen position of click
+     */
+    void viewportClicked(const QPointF& screenPos);
+
+    /**
+     * @brief Emitted when edit mode changes
+     */
+    void editModeChanged(bool editMode);
 
 protected:
     void keyPressEvent(QKeyEvent* event) override;
@@ -149,4 +195,14 @@ private:
     VkPhysicalDeviceScalarBlockLayoutFeatures m_scalarBlockLayoutFeatures{};
     VkPhysicalDeviceRayQueryFeaturesKHR m_rayQueryFeatures{};
     VkPhysicalDeviceSynchronization2Features m_synchronization2Features{};
+
+    // Editing components (owned by MainWindow)
+    SelectionManager* m_selection = nullptr;
+    TransformGizmo* m_gizmo = nullptr;
+    UndoStack* m_undoStack = nullptr;
+
+    // Edit mode state
+    bool m_editMode = true;  // Default to edit mode
+    bool m_transformDragging = false;
+    QPointF m_transformDragStart;
 };
