@@ -15,7 +15,15 @@
 #include <QTranslator>
 #include <QLocale>
 
+#include <core/Log.hpp>  // libQuantiloom logging
+
 int main(int argc, char* argv[]) {
+    // Set log message format with timestamp [HH:mm:ss.zzz]
+    qSetMessagePattern("[%{time HH:mm:ss.zzz}] %{message}");
+
+    // Initialize libQuantiloom logging (console only, no log file)
+    quantiloom::Log::Init(nullptr, quantiloom::Log::Level::Debug);
+
     // Enable high DPI scaling
     QApplication::setHighDpiScaleFactorRoundingPolicy(
         Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
@@ -24,7 +32,7 @@ int main(int argc, char* argv[]) {
 
     // Set application metadata
     app.setApplicationName("Quantiloom");
-    app.setApplicationVersion("1.0.0");
+    app.setApplicationVersion("0.0.1");
     app.setOrganizationName("wtflmao");
     app.setOrganizationDomain("github.com/wtflmao");
 
@@ -65,5 +73,10 @@ int main(int argc, char* argv[]) {
     MainWindow mainWindow(&vulkanInstance);
     mainWindow.show();
 
-    return app.exec();
+    int result = app.exec();
+
+    // Cleanup libQuantiloom logging
+    quantiloom::Log::Shutdown();
+
+    return result;
 }

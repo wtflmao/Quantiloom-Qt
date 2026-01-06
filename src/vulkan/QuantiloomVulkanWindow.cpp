@@ -11,12 +11,90 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QWheelEvent>
+#include <QDebug>
 
 QuantiloomVulkanWindow::QuantiloomVulkanWindow(QWindow* parent)
     : QVulkanWindow(parent)
 {
-    // Request Vulkan 1.3 for ray tracing and dynamic rendering
-    // Note: The actual API version is set on QVulkanInstance in main.cpp
+    // Request required device extensions for ray tracing
+    setDeviceExtensions({
+        // Ray tracing core extensions
+        "VK_KHR_acceleration_structure",
+        "VK_KHR_ray_tracing_pipeline",
+        "VK_KHR_ray_query",  // Required if shaders use RayQuery capability
+        "VK_KHR_deferred_host_operations",
+        // Required by ray tracing
+        "VK_KHR_buffer_device_address",
+        "VK_KHR_spirv_1_4",
+        "VK_KHR_shader_float_controls",
+        // Dynamic rendering (Vulkan 1.3 core, but request as extension for compatibility)
+        "VK_KHR_dynamic_rendering",
+        // Synchronization2 (Vulkan 1.3 core)
+        "VK_KHR_synchronization2",
+        // Maintenance extensions often required
+        "VK_KHR_maintenance3",
+        "VK_KHR_maintenance4",
+        // Descriptor indexing for bindless textures
+        "VK_EXT_descriptor_indexing",
+        // Scalar block layout
+        "VK_EXT_scalar_block_layout"
+    });
+
+    // Enable required Vulkan features for ray tracing using Qt 6.7+ API
+    // Reference: https://doc.qt.io/qt-6/qvulkanwindow.html#setEnabledFeaturesModifier
+    setEnabledFeaturesModifier([this](VkPhysicalDeviceFeatures2& features) {
+        qDebug() << "QuantiloomVulkanWindow: Enabling ray tracing device features...";
+
+        // Initialize feature structures with sType
+        m_bufferDeviceAddressFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
+        m_bufferDeviceAddressFeatures.bufferDeviceAddress = VK_TRUE;
+
+        m_accelerationStructureFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
+        m_accelerationStructureFeatures.accelerationStructure = VK_TRUE;
+
+        m_rayTracingPipelineFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
+        m_rayTracingPipelineFeatures.rayTracingPipeline = VK_TRUE;
+
+        m_rayQueryFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR;
+        m_rayQueryFeatures.rayQuery = VK_TRUE;
+
+        m_dynamicRenderingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+        m_dynamicRenderingFeatures.dynamicRendering = VK_TRUE;
+
+        m_synchronization2Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES;
+        m_synchronization2Features.synchronization2 = VK_TRUE;
+
+        m_descriptorIndexingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
+        m_descriptorIndexingFeatures.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+        m_descriptorIndexingFeatures.runtimeDescriptorArray = VK_TRUE;
+        m_descriptorIndexingFeatures.descriptorBindingVariableDescriptorCount = VK_TRUE;
+        m_descriptorIndexingFeatures.descriptorBindingPartiallyBound = VK_TRUE;
+
+        m_scalarBlockLayoutFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES;
+        m_scalarBlockLayoutFeatures.scalarBlockLayout = VK_TRUE;
+
+        // Build pNext chain (matches VulkanContext order):
+        // features -> bufferDeviceAddress -> accelerationStructure -> rayTracingPipeline
+        //          -> rayQuery -> dynamicRendering -> synchronization2
+        //          -> descriptorIndexing -> scalarBlockLayout
+        features.pNext = &m_bufferDeviceAddressFeatures;
+        m_bufferDeviceAddressFeatures.pNext = &m_accelerationStructureFeatures;
+        m_accelerationStructureFeatures.pNext = &m_rayTracingPipelineFeatures;
+        m_rayTracingPipelineFeatures.pNext = &m_rayQueryFeatures;
+        m_rayQueryFeatures.pNext = &m_dynamicRenderingFeatures;
+        m_dynamicRenderingFeatures.pNext = &m_synchronization2Features;
+        m_synchronization2Features.pNext = &m_descriptorIndexingFeatures;
+        m_descriptorIndexingFeatures.pNext = &m_scalarBlockLayoutFeatures;
+        m_scalarBlockLayoutFeatures.pNext = nullptr;
+
+        // Enable required Vulkan 1.0 features
+        features.features.shaderInt64 = VK_TRUE;
+        features.features.samplerAnisotropy = VK_TRUE;
+
+        qDebug() << "  Ray tracing features enabled via pNext chain (including rayQuery, synchronization2)";
+    });
+
+    qDebug() << "QuantiloomVulkanWindow: Requested ray tracing device extensions";
 }
 
 QuantiloomVulkanWindow::~QuantiloomVulkanWindow() = default;

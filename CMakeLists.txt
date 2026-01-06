@@ -5,7 +5,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 project(QuantiloomQt
-    VERSION 1.0.0
+    VERSION 0.0.1
     DESCRIPTION "Qt6 GUI for libQuantiloom"
     LANGUAGES CXX
 )
@@ -54,29 +54,43 @@ find_package(Vulkan REQUIRED)
 message(STATUS "Vulkan SDK: ${Vulkan_VERSION}")
 
 # ============================================================================
-# libQuantiloom Integration
+# libQuantiloom SDK Integration
 # ============================================================================
-# Option 1: Via add_subdirectory (recommended for development)
-# Option 2: Via FetchContent
-# Option 3: Via find_package (requires installation)
+# Uses prebuilt libQuantiloom from SDK directory.
+# SDK path auto-detected based on platform (Windows/Linux).
+# ============================================================================
 
-set(QUANTILOOM_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../Quantiloom-dev"
-    CACHE PATH "Path to Quantiloom source directory")
+set(QUANTILOOM_SDK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../Quantiloom-SDK"
+    CACHE PATH "Path to Quantiloom SDK root directory")
 
-if(EXISTS "${QUANTILOOM_SOURCE_DIR}/CMakeLists.txt")
-    message(STATUS "Using Quantiloom from: ${QUANTILOOM_SOURCE_DIR}")
-
-    # Disable tests/examples when building as subdirectory
-    set(QUANTILOOM_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(QUANTILOOM_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-
-    add_subdirectory(${QUANTILOOM_SOURCE_DIR} ${CMAKE_BINARY_DIR}/quantiloom)
+# Auto-detect platform-specific SDK path
+if(WIN32)
+    set(QUANTILOOM_SDK_DIR "${QUANTILOOM_SDK_ROOT}/windows_amd64")
+elseif(UNIX AND NOT APPLE)
+    set(QUANTILOOM_SDK_DIR "${QUANTILOOM_SDK_ROOT}/linux_amd64")
 else()
+    message(FATAL_ERROR "Unsupported platform. Only Windows and Linux are supported.")
+endif()
+
+if(NOT EXISTS "${QUANTILOOM_SDK_DIR}/lib/cmake/Quantiloom/QuantiloomConfig.cmake")
     message(FATAL_ERROR
-        "Quantiloom source not found at: ${QUANTILOOM_SOURCE_DIR}\n"
-        "Please set QUANTILOOM_SOURCE_DIR to the correct path."
+        "Quantiloom SDK not found at: ${QUANTILOOM_SDK_DIR}\n"
+        "Expected: ${QUANTILOOM_SDK_DIR}/lib/cmake/Quantiloom/QuantiloomConfig.cmake\n"
+        "Please set QUANTILOOM_SDK_ROOT to the correct SDK location."
     )
 endif()
+
+# Add SDK to CMAKE_PREFIX_PATH for find_package
+list(APPEND CMAKE_PREFIX_PATH "${QUANTILOOM_SDK_DIR}")
+
+message(STATUS "Using Quantiloom SDK: ${QUANTILOOM_SDK_DIR}")
+
+# Find prebuilt Quantiloom (also finds Vulkan and glm as dependencies)
+find_package(Quantiloom REQUIRED)
+message(STATUS "Found Quantiloom: ${Quantiloom_VERSION}")
+
+# Use namespaced target from find_package
+set(QUANTILOOM_LIBRARIES Quantiloom::libQuantiloom)
 
 # ============================================================================
 # Sources
@@ -123,7 +137,9 @@ endif()
 # ============================================================================
 # Executable
 # ============================================================================
-add_executable(QuantiloomQt WIN32
+# Note: Remove WIN32 for debugging to see console output
+# add_executable(QuantiloomQt WIN32
+add_executable(QuantiloomQt
     ${GUI_SOURCES}
     ${QM_FILES}
     ${RESOURCE_FILES}
@@ -153,7 +169,7 @@ target_link_libraries(QuantiloomQt PRIVATE
     Qt6::Widgets
     Qt6::Gui
     Vulkan::Vulkan
-    libQuantiloom
+    ${QUANTILOOM_LIBRARIES}
 )
 
 # ============================================================================
@@ -169,7 +185,7 @@ else()
 endif()
 
 # ============================================================================
-# Windows-specific: Deploy Qt DLLs
+# Windows-specific: Deploy DLLs
 # ============================================================================
 if(WIN32)
     # Copy Qt DLLs to output directory (for running from build dir)
@@ -181,6 +197,35 @@ if(WIN32)
             $<TARGET_FILE_DIR:QuantiloomQt>
         COMMENT "Copying Qt6 DLLs..."
     )
+
+    # Copy Qt platform plugin (qwindows.dll)
+    add_custom_command(TARGET QuantiloomQt POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            "$<TARGET_FILE_DIR:QuantiloomQt>/platforms"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>"
+            "$<TARGET_FILE_DIR:QuantiloomQt>/platforms/"
+        COMMENT "Copying Qt6 platform plugin..."
+    )
+
+    # Copy libQuantiloom DLL from SDK
+    add_custom_command(TARGET QuantiloomQt POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:Quantiloom::libQuantiloom>
+            $<TARGET_FILE_DIR:QuantiloomQt>
+        COMMENT "Copying libQuantiloom DLL from SDK..."
+    )
+
+    # Copy shader files from SDK (required at runtime)
+    file(GLOB QUANTILOOM_SHADERS "${QUANTILOOM_SDK_DIR}/bin/*.spv")
+    if(QUANTILOOM_SHADERS)
+        add_custom_command(TARGET QuantiloomQt POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${QUANTILOOM_SHADERS}
+                $<TARGET_FILE_DIR:QuantiloomQt>
+            COMMENT "Copying shader files from SDK..."
+        )
+    endif()
 endif()
 
 # ============================================================================
@@ -193,5 +238,5 @@ message(STATUS "  Version:      ${PROJECT_VERSION}")
 message(STATUS "  Build Type:   ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Qt6:          ${Qt6_VERSION}")
 message(STATUS "  Vulkan:       ${Vulkan_VERSION}")
-message(STATUS "  Quantiloom:   ${QUANTILOOM_SOURCE_DIR}")
+message(STATUS "  Quantiloom:   SDK (${QUANTILOOM_SDK_DIR})")
 message(STATUS "========================================")

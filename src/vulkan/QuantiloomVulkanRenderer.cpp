@@ -12,7 +12,14 @@
 
 #include <QVulkanFunctions>
 #include <QFile>
+#include <QFileInfo>
+#include <QDir>
 #include <QObject>
+#include <QDebug>
+#include <QProgressDialog>
+#include <QApplication>
+#include <QTimer>
+#include <QStandardPaths>
 #include <cmath>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -29,16 +36,56 @@ QuantiloomVulkanRenderer::~QuantiloomVulkanRenderer() {
 }
 
 void QuantiloomVulkanRenderer::initResources() {
-    // Extract Qt-managed Vulkan handles
+    qDebug() << "QuantiloomVulkanRenderer::initResources() - Vulkan device ready";
+    // Note: Swapchain is not ready yet, full initialization happens in initSwapChainResources()
+}
+
+void QuantiloomVulkanRenderer::initSwapChainResources() {
+    qDebug() << "QuantiloomVulkanRenderer::initSwapChainResources() - Starting...";
+
+    QSize swapSize = m_window->swapChainImageSize();
+    qDebug() << "  Swapchain size:" << swapSize;
+
+    if (swapSize.width() <= 0 || swapSize.height() <= 0) {
+        qWarning() << "Invalid swapchain size, skipping initialization";
+        return;
+    }
+
+    // If already initialized, just resize
+    if (m_renderContext) {
+        qDebug() << "  Resizing existing context...";
+        m_renderContext->Resize(
+            static_cast<quantiloom::u32>(swapSize.width()),
+            static_cast<quantiloom::u32>(swapSize.height())
+        );
+        resetAccumulation();
+        return;
+    }
+
+    // First time initialization - extract Qt-managed Vulkan handles
     QVulkanInstance* inst = m_window->vulkanInstance();
     VkInstance vkInstance = inst->vkInstance();
     VkDevice device = m_window->device();
     VkPhysicalDevice physDevice = m_window->physicalDevice();
 
-    // Get graphics queue
-    QVulkanFunctions* f = inst->functions();
+    qDebug() << "  VkInstance:" << vkInstance;
+    qDebug() << "  VkDevice:" << device;
+    qDebug() << "  VkPhysicalDevice:" << physDevice;
+
+    if (!device) {
+        qCritical() << "Device is NULL! Qt failed to create Vulkan device.";
+        qCritical() << "This usually means required device extensions are not supported.";
+        return;
+    }
+
+    // Get graphics queue using device functions
+    QVulkanDeviceFunctions* df = inst->deviceFunctions(device);
     VkQueue graphicsQueue;
-    f->vkGetDeviceQueue(device, m_window->graphicsQueueFamilyIndex(), 0, &graphicsQueue);
+    df->vkGetDeviceQueue(device, m_window->graphicsQueueFamilyIndex(), 0, &graphicsQueue);
+
+    qDebug() << "  VkQueue:" << graphicsQueue;
+    qDebug() << "  Queue family:" << m_window->graphicsQueueFamilyIndex();
+    qDebug() << "  Color format:" << m_window->colorFormat();
 
     // Initialize libQuantiloom with external handles
     quantiloom::ExternalRenderContext::InitParams params{};
@@ -48,17 +95,23 @@ void QuantiloomVulkanRenderer::initResources() {
     params.graphicsQueue = graphicsQueue;
     params.graphicsQueueFamily = static_cast<quantiloom::u32>(m_window->graphicsQueueFamilyIndex());
     params.targetColorFormat = m_window->colorFormat();
-
-    QSize swapSize = m_window->swapChainImageSize();
     params.width = static_cast<quantiloom::u32>(swapSize.width());
     params.height = static_cast<quantiloom::u32>(swapSize.height());
+    // Note: pipelineCacheDir uses platform-specific default in ExternalRenderContext:
+    //   Windows: %LOCALAPPDATA%/Quantiloom/cache/
+    //   Linux:   ~/.cache/Quantiloom/
+    //   macOS:   ~/Library/Caches/Quantiloom/
+
+    qDebug() << "Creating ExternalRenderContext...";
 
     auto result = quantiloom::ExternalRenderContext::Create(params);
     if (!result) {
-        qWarning("Failed to create ExternalRenderContext: %s",
-                 qPrintable(QString::fromStdString(result.error())));
+        qCritical() << "Failed to create ExternalRenderContext:"
+                    << QString::fromStdString(result.error());
         return;
     }
+
+    qDebug() << "ExternalRenderContext created successfully!";
 
     m_renderContext = std::move(result.value());
     m_initialized = true;
@@ -72,19 +125,6 @@ void QuantiloomVulkanRenderer::initResources() {
     // Set initial camera
     m_renderContext->SetCameraLookAt(m_cameraPosition, m_cameraTarget, m_cameraUp);
     m_renderContext->SetCameraFOV(m_cameraFovY);
-}
-
-void QuantiloomVulkanRenderer::initSwapChainResources() {
-    if (!m_renderContext) return;
-
-    // Update render context with new swapchain size
-    QSize swapSize = m_window->swapChainImageSize();
-    m_renderContext->Resize(
-        static_cast<quantiloom::u32>(swapSize.width()),
-        static_cast<quantiloom::u32>(swapSize.height())
-    );
-
-    resetAccumulation();
 }
 
 void QuantiloomVulkanRenderer::releaseSwapChainResources() {
@@ -104,7 +144,8 @@ void QuantiloomVulkanRenderer::startNextFrame() {
     // Update camera based on input
     updateCamera(deltaTime);
 
-    if (!m_renderContext) {
+    if (!m_renderContext || !m_renderContext->HasScene()) {
+        // No scene loaded yet, just present empty frame
         m_window->frameReady();
         m_window->requestUpdate();
         return;
@@ -113,14 +154,15 @@ void QuantiloomVulkanRenderer::startNextFrame() {
     // Get current command buffer and swapchain image
     VkCommandBuffer cmd = m_window->currentCommandBuffer();
     int swapChainIndex = m_window->currentSwapChainImageIndex();
-    VkImageView targetView = m_window->swapChainImageView(swapChainIndex);
+    VkImage targetImage = m_window->swapChainImage(swapChainIndex);
     QSize swapSize = m_window->swapChainImageSize();
 
     // Render frame using libQuantiloom
-    // The library will use VK_KHR_dynamic_rendering internally
+    // ExternalRenderContext handles layout transitions and blit to swapchain
     m_renderContext->RenderFrame(
         cmd,
-        targetView,
+        targetImage,
+        VK_IMAGE_LAYOUT_UNDEFINED,  // Qt doesn't guarantee initial layout
         static_cast<quantiloom::u32>(swapSize.width()),
         static_cast<quantiloom::u32>(swapSize.height())
     );
@@ -141,23 +183,71 @@ void QuantiloomVulkanRenderer::startNextFrame() {
 }
 
 void QuantiloomVulkanRenderer::loadScene(const QString& filePath) {
+    qDebug() << "QuantiloomVulkanRenderer::loadScene() - Path:" << filePath;
+
     if (!m_initialized) {
+        qDebug() << "  Not initialized, saving as pending...";
         m_pendingScenePath = filePath;
         return;
     }
 
     if (!m_renderContext) {
+        qCritical() << "  Render context is null!";
         emit m_window->sceneLoaded(false, QObject::tr("Render context not initialized"));
         return;
     }
 
+    // Check if this is the first run (no pipeline cache)
+    QProgressDialog* progressDialog = nullptr;
+    if (isFirstRun()) {
+        qDebug() << "  First run detected - showing shader compilation dialog";
+
+        // Create modal progress dialog
+        // Note: Using nullptr as parent since QVulkanWindow is not a QWidget
+        progressDialog = new QProgressDialog(
+            QObject::tr("First run, compiling shaders...\nIt may take a few minutes."),
+            QString(),  // No cancel button
+            0, 0,       // Indeterminate progress
+            nullptr
+        );
+        progressDialog->setWindowTitle(QObject::tr("Initializing"));
+        progressDialog->setWindowModality(Qt::ApplicationModal);
+        progressDialog->setMinimumDuration(0);  // Show immediately
+        progressDialog->setCancelButton(nullptr);  // Remove cancel button
+        progressDialog->setAutoClose(true);
+        progressDialog->setAutoReset(true);
+        progressDialog->setMinimumWidth(350);
+
+        // Make dialog non-closable
+        progressDialog->setWindowFlags(
+            Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint
+        );
+
+        // Show dialog and process events to ensure it's displayed
+        progressDialog->show();
+        progressDialog->raise();
+        progressDialog->activateWindow();
+        QApplication::processEvents();
+    }
+
+    qDebug() << "  Calling LoadSceneFromGltf...";
     std::string path = filePath.toStdString();
     auto result = m_renderContext->LoadSceneFromGltf(path);
 
+    // Close progress dialog
+    if (progressDialog) {
+        progressDialog->close();
+        progressDialog->deleteLater();
+    }
+
+    qDebug() << "  LoadSceneFromGltf returned";
+
     if (result) {
+        qDebug() << "  Scene loaded successfully!";
         resetAccumulation();
         emit m_window->sceneLoaded(true, QObject::tr("Scene loaded successfully"));
     } else {
+        qCritical() << "  Failed to load scene:" << QString::fromStdString(result.error());
         emit m_window->sceneLoaded(false,
             QObject::tr("Failed to load scene: %1").arg(QString::fromStdString(result.error())));
     }
@@ -301,4 +391,23 @@ void QuantiloomVulkanRenderer::resetAccumulation() {
     if (m_renderContext) {
         m_renderContext->ResetAccumulation();
     }
+}
+
+bool QuantiloomVulkanRenderer::isFirstRun() const {
+    // Check if pipeline cache file exists
+    // If it doesn't exist, this is the first run and shader compilation will be slow
+    //
+    // Cache location follows platform conventions:
+    //   Windows: %LOCALAPPDATA%/Quantiloom/cache/pipeline_cache.bin
+    //   Linux:   ~/.cache/Quantiloom/pipeline_cache.bin
+    //   macOS:   ~/Library/Caches/Quantiloom/pipeline_cache.bin
+    QString cacheDir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+#ifdef Q_OS_WIN
+    // Windows: QStandardPaths returns %LOCALAPPDATA%, add /Quantiloom/cache
+    QString cachePath = cacheDir + "/Quantiloom/cache/pipeline_cache.bin";
+#else
+    // Linux/macOS: QStandardPaths returns ~/.cache or ~/Library/Caches
+    QString cachePath = cacheDir + "/Quantiloom/pipeline_cache.bin";
+#endif
+    return !QFileInfo::exists(cachePath);
 }

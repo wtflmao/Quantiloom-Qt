@@ -9,12 +9,14 @@
 
 #include <QVulkanWindowRenderer>
 #include <QString>
+#include <QFuture>
 #include <memory>
 #include <chrono>
 
 #include <glm/glm.hpp>
 
 class QuantiloomVulkanWindow;
+class QProgressDialog;
 
 namespace quantiloom {
 class ExternalRenderContext;
@@ -60,6 +62,12 @@ private:
     void updateCamera(float deltaTime);
     void resetAccumulation();
 
+    // Check if this is the first run (no pipeline cache)
+    bool isFirstRun() const;
+
+    // Show shader compilation progress dialog
+    void showShaderCompilationDialog();
+
     QuantiloomVulkanWindow* m_window;
 
     // libQuantiloom render context
@@ -99,4 +107,8 @@ private:
     // Initialization state
     bool m_initialized = false;
     QString m_pendingScenePath;
+
+    // First run shader compilation tracking
+    bool m_isFirstRun = false;
+    bool m_shaderCompilationChecked = false;
 };

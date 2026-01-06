@@ -10,6 +10,7 @@
 #include <QVulkanWindow>
 #include <QString>
 #include <memory>
+#include <vulkan/vulkan.h>
 
 class QuantiloomVulkanRenderer;
 
@@ -98,4 +99,14 @@ private:
     bool m_keyQ = false;
     bool m_keyE = false;
     bool m_shiftHeld = false;
+
+    // Vulkan feature structures (must persist during device creation)
+    VkPhysicalDeviceBufferDeviceAddressFeatures m_bufferDeviceAddressFeatures{};
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR m_rayTracingPipelineFeatures{};
+    VkPhysicalDeviceAccelerationStructureFeaturesKHR m_accelerationStructureFeatures{};
+    VkPhysicalDeviceDynamicRenderingFeatures m_dynamicRenderingFeatures{};
+    VkPhysicalDeviceDescriptorIndexingFeatures m_descriptorIndexingFeatures{};
+    VkPhysicalDeviceScalarBlockLayoutFeatures m_scalarBlockLayoutFeatures{};
+    VkPhysicalDeviceRayQueryFeaturesKHR m_rayQueryFeatures{};
+    VkPhysicalDeviceSynchronization2Features m_synchronization2Features{};
 };

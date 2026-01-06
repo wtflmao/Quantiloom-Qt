@@ -255,16 +255,16 @@ void MainWindow::onAbout() {
         this,
         tr("About Quantiloom"),
         tr("<h3>Quantiloom</h3>"
-           "<p>Version 1.0.0</p>"
-           "<p>A spectral path tracer with hardware ray tracing support.</p>"
+           "<p>Version 0.0.1</p>"
+           "<p>A spectral renderer with hardware ray tracing support.</p>"
            "<p>Features:</p>"
            "<ul>"
-           "<li>RTX hardware ray tracing</li>"
-           "<li>Spectral rendering (380-2500nm)</li>"
+           "<li>Hardware ray tracing</li>"
+           "<li>Spectral rendering</li>"
            "<li>PBR materials with spectral extensions</li>"
            "<li>Atmospheric scattering</li>"
            "</ul>"
-           "<p>Copyright (c) 2024 wtflmao</p>")
+           "<p>Copyright (c) 2025-2026 wtflmao</p>")
     );
 }
 
