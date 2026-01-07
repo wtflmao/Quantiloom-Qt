@@ -144,8 +144,8 @@
         <translation>Open Scene</translation>
     </message>
     <message>
-        <source>glTF Files (*.gltf *.glb);;TOML Config (*.toml);;All Files (*)</source>
-        <translation>glTF Files (*.gltf *.glb);;TOML Config (*.toml);;All Files (*)</translation>
+        <source>3D Scene Files (*.gltf *.glb *.usd *.usda *.usdc *.usdz);;glTF Files (*.gltf *.glb);;OpenUSD Files (*.usd *.usda *.usdc *.usdz);;TOML Config (*.toml);;All Files (*)</source>
+        <translation>3D Scene Files (*.gltf *.glb *.usd *.usda *.usdc *.usdz);;glTF Files (*.gltf *.glb);;OpenUSD Files (*.usd *.usda *.usdc *.usdz);;TOML Config (*.toml);;All Files (*)</translation>
     </message>
     <message>
         <source>Config loaded: %1</source>

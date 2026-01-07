@@ -358,13 +358,13 @@ void MainWindow::onOpenScene() {
         this,
         tr("Open Scene"),
         QString(),
-        tr("glTF Files (*.gltf *.glb);;TOML Config (*.toml);;All Files (*)")
+        tr("3D Scene Files (*.gltf *.glb *.usd *.usda *.usdc *.usdz);;glTF Files (*.gltf *.glb);;OpenUSD Files (*.usd *.usda *.usdc *.usdz);;TOML Config (*.toml);;All Files (*)")
     );
 
     if (!fileName.isEmpty()) {
-        // Check if it's a TOML config or a glTF file
+        // Check if it's a TOML config or a scene file
         if (fileName.endsWith(".toml", Qt::CaseInsensitive)) {
-            // Load TOML config (which may reference a glTF file)
+            // Load TOML config (which may reference a glTF or USD file)
             SceneConfig config;
             if (m_configManager->loadConfig(fileName, config)) {
                 applyConfig(config);
@@ -375,7 +375,7 @@ void MainWindow::onOpenScene() {
                     tr("Failed to load config: %1").arg(m_configManager->lastError()));
             }
         } else {
-            // Direct glTF file loading
+            // Direct scene file loading (glTF or USD)
             m_currentSceneFile = fileName;
             m_vulkanWindow->loadScene(fileName);
             m_statusLabel->setText(tr("Loading: %1").arg(fileName));
@@ -617,15 +617,25 @@ void MainWindow::applyConfig(const SceneConfig& config) {
     m_lightingPanel->setLightingParams(config.lighting);
     m_vulkanWindow->setLightingParams(config.lighting);
 
-    // Load the glTF file if specified
-    if (!config.gltfPath.isEmpty()) {
-        // Resolve relative path using config base directory
-        QString gltfPath = config.gltfPath;
-        if (!QFileInfo(gltfPath).isAbsolute() && !config.baseDir.isEmpty()) {
-            gltfPath = config.baseDir + "/" + config.gltfPath;
+    // Load scene file (glTF or USD)
+    QString scenePath;
+    if (!config.usdPath.isEmpty()) {
+        // USD file specified
+        scenePath = config.usdPath;
+        if (!QFileInfo(scenePath).isAbsolute() && !config.baseDir.isEmpty()) {
+            scenePath = config.baseDir + "/" + config.usdPath;
         }
-        m_currentSceneFile = gltfPath;
-        m_vulkanWindow->loadScene(gltfPath);
+    } else if (!config.gltfPath.isEmpty()) {
+        // glTF file specified
+        scenePath = config.gltfPath;
+        if (!QFileInfo(scenePath).isAbsolute() && !config.baseDir.isEmpty()) {
+            scenePath = config.baseDir + "/" + config.gltfPath;
+        }
+    }
+
+    if (!scenePath.isEmpty()) {
+        m_currentSceneFile = scenePath;
+        m_vulkanWindow->loadScene(scenePath);
     }
 
     // Apply camera settings (after scene load so renderer is ready)

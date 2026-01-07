@@ -65,6 +65,7 @@ void ConfigManager::extractSceneConfig(const quantiloom::Config& config, SceneCo
 
     // [scene]
     out.gltfPath = QString::fromStdString(config.GetString("scene.gltf", ""));
+    out.usdPath = QString::fromStdString(config.GetString("scene.usd", ""));
     out.worldUnitsToMeters = config.GetFloat("scene.world_units_to_meters", 1.0f);
 
     // [camera]

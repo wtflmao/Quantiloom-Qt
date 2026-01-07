@@ -33,6 +33,7 @@ struct SceneConfig {
 
     // [scene]
     QString gltfPath;
+    QString usdPath;
     float worldUnitsToMeters = 1.0f;
 
     // [camera]

@@ -233,9 +233,20 @@ void QuantiloomVulkanRenderer::loadScene(const QString& filePath) {
         QApplication::processEvents();
     }
 
-    qDebug() << "  Calling LoadSceneFromGltf...";
+    // Determine file type and call appropriate loader
     std::string path = filePath.toStdString();
-    auto result = m_renderContext->LoadSceneFromGltf(path);
+    quantiloom::Result<void, quantiloom::String> result;
+
+    if (filePath.endsWith(".usd", Qt::CaseInsensitive) ||
+        filePath.endsWith(".usda", Qt::CaseInsensitive) ||
+        filePath.endsWith(".usdc", Qt::CaseInsensitive) ||
+        filePath.endsWith(".usdz", Qt::CaseInsensitive)) {
+        qDebug() << "  Calling LoadSceneFromUsd...";
+        result = m_renderContext->LoadSceneFromUsd(path);
+    } else {
+        qDebug() << "  Calling LoadSceneFromGltf...";
+        result = m_renderContext->LoadSceneFromGltf(path);
+    }
 
     // Close progress dialog
     if (progressDialog) {
@@ -243,7 +254,7 @@ void QuantiloomVulkanRenderer::loadScene(const QString& filePath) {
         progressDialog->deleteLater();
     }
 
-    qDebug() << "  LoadSceneFromGltf returned";
+    qDebug() << "  Scene load returned";
 
     if (result) {
         qDebug() << "  Scene loaded successfully!";

@@ -144,8 +144,8 @@
         <translation>打开场景</translation>
     </message>
     <message>
-        <source>glTF Files (*.gltf *.glb);;TOML Config (*.toml);;All Files (*)</source>
-        <translation>glTF 文件 (*.gltf *.glb);;TOML 配置 (*.toml);;所有文件 (*)</translation>
+        <source>3D Scene Files (*.gltf *.glb *.usd *.usda *.usdc *.usdz);;glTF Files (*.gltf *.glb);;OpenUSD Files (*.usd *.usda *.usdc *.usdz);;TOML Config (*.toml);;All Files (*)</source>
+        <translation>3D 场景文件 (*.gltf *.glb *.usd *.usda *.usdc *.usdz);;glTF 文件 (*.gltf *.glb);;OpenUSD 文件 (*.usd *.usda *.usdc *.usdz);;TOML 配置 (*.toml);;所有文件 (*)</translation>
     </message>
     <message>
         <source>Config loaded: %1</source>
