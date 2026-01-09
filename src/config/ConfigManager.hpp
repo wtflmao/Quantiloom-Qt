@@ -25,7 +25,7 @@ struct SceneConfig {
     QString environmentMap;
 
     // [spectral]
-    quantiloom::SpectralMode spectralMode = quantiloom::SpectralMode::RGB_Fused;
+    quantiloom::SpectralMode spectralMode = quantiloom::SpectralMode::RGB;
     float wavelength_nm = 550.0f;
     float lambda_min = 380.0f;
     float lambda_max = 760.0f;

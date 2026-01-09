@@ -32,14 +32,18 @@ void SpectralConfigPanel::setupUi() {
     auto* modeLayout = new QVBoxLayout(modeGroup);
 
     m_modeCombo = new QComboBox();
-    m_modeCombo->addItem(tr("RGB Fused (Default)"),
-                         static_cast<int>(quantiloom::SpectralMode::RGB_Fused));
+    m_modeCombo->addItem(tr("RGB (Default)"),
+                         static_cast<int>(quantiloom::SpectralMode::RGB));
+    m_modeCombo->addItem(tr("VIS Fused (32-band Spectral)"),
+                         static_cast<int>(quantiloom::SpectralMode::VIS_Fused));
     m_modeCombo->addItem(tr("Single Wavelength"),
                          static_cast<int>(quantiloom::SpectralMode::Single));
     m_modeCombo->addItem(tr("MWIR (3-5 μm)"),
                          static_cast<int>(quantiloom::SpectralMode::MWIR_Fused));
     m_modeCombo->addItem(tr("LWIR (8-12 μm)"),
                          static_cast<int>(quantiloom::SpectralMode::LWIR_Fused));
+    m_modeCombo->addItem(tr("NIR (780-1400 nm)"),
+                         static_cast<int>(quantiloom::SpectralMode::NIR_Fused));
     connect(m_modeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &SpectralConfigPanel::onModeChanged);
     modeLayout->addWidget(m_modeCombo);
@@ -144,7 +148,7 @@ void SpectralConfigPanel::setupUi() {
     mainLayout->addStretch();
 
     // Initialize
-    updateModeDescription(quantiloom::SpectralMode::RGB_Fused);
+    updateModeDescription(quantiloom::SpectralMode::RGB);
     onWavelengthSliderChanged(550);
 }
 
@@ -165,7 +169,9 @@ void SpectralConfigPanel::setSpectralMode(quantiloom::SpectralMode mode) {
 
     // Update stack page
     switch (mode) {
-        case quantiloom::SpectralMode::RGB_Fused:
+        case quantiloom::SpectralMode::RGB:
+        case quantiloom::SpectralMode::VIS_Fused:
+        case quantiloom::SpectralMode::NIR_Fused:
             m_settingsStack->setCurrentIndex(0);
             break;
         case quantiloom::SpectralMode::Single:
@@ -225,7 +231,9 @@ void SpectralConfigPanel::onModeChanged(int index) {
     updateModeDescription(mode);
 
     switch (mode) {
-        case quantiloom::SpectralMode::RGB_Fused:
+        case quantiloom::SpectralMode::RGB:
+        case quantiloom::SpectralMode::VIS_Fused:
+        case quantiloom::SpectralMode::NIR_Fused:
             m_settingsStack->setCurrentIndex(0);
             break;
         case quantiloom::SpectralMode::Single:
@@ -313,9 +321,13 @@ void SpectralConfigPanel::onRangeChanged() {
 void SpectralConfigPanel::updateModeDescription(quantiloom::SpectralMode mode) {
     QString desc;
     switch (mode) {
-        case quantiloom::SpectralMode::RGB_Fused:
-            desc = tr("Standard RGB rendering using CIE color matching functions. "
-                      "Best for real-time preview and artistic visualization.");
+        case quantiloom::SpectralMode::RGB:
+            desc = tr("Fast RGB rendering, no spectral integration. "
+                      "Best for real-time preview.");
+            break;
+        case quantiloom::SpectralMode::VIS_Fused:
+            desc = tr("32-wavelength spectral integration with CIE XYZ color matching. "
+                      "Physically accurate but slower.");
             break;
         case quantiloom::SpectralMode::Single:
             desc = tr("Monochromatic rendering at a single wavelength. "
@@ -328,6 +340,10 @@ void SpectralConfigPanel::updateModeDescription(quantiloom::SpectralMode mode) {
         case quantiloom::SpectralMode::LWIR_Fused:
             desc = tr("Long-Wave Infrared (8-12 μm). Thermal imaging for room-temperature "
                       "objects, people, and buildings.");
+            break;
+        case quantiloom::SpectralMode::NIR_Fused:
+            desc = tr("Near-Infrared (780-1400 nm). Reflected solar radiation, "
+                      "vegetation analysis, and night vision.");
             break;
         default:
             desc = tr("Unknown spectral mode.");

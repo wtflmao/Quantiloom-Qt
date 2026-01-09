@@ -125,8 +125,8 @@ quantiloom::SpectralMode ConfigManager::parseSpectralMode(const std::string& mod
     } else if (modeStr == "swir_fused") {
         return quantiloom::SpectralMode::SWIR_Fused;
     }
-    // Default to RGB_Fused
-    return quantiloom::SpectralMode::RGB_Fused;
+    // Default to RGB
+    return quantiloom::SpectralMode::RGB;
 }
 
 bool ConfigManager::exportConfig(const QString& filePath, const SceneConfig& config) {

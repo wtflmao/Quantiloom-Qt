@@ -15,6 +15,7 @@
 
 #include <glm/glm.hpp>
 #include <core/Types.hpp>
+#include <renderer/LightingParams.hpp>
 
 class QuantiloomVulkanWindow;
 class QProgressDialog;
@@ -22,7 +23,6 @@ class QProgressDialog;
 namespace quantiloom {
 class ExternalRenderContext;
 class Scene;
-struct LightingParams;
 struct Material;
 }
 
@@ -124,10 +124,16 @@ private:
 
     // Spectral mode
     float m_wavelength = 550.0f;  // nm
+    quantiloom::SpectralMode m_spectralMode = quantiloom::SpectralMode::RGB;
+
+    // Lighting params (stored for restore after window minimize)
+    quantiloom::LightingParams m_lightingParams = quantiloom::CreateDefaultLightingParams();
+    bool m_hasLightingParams = false;  // True if set from config
 
     // Initialization state
     bool m_initialized = false;
     QString m_pendingScenePath;
+    QString m_currentScenePath;  // Track loaded scene for restore after minimize
 
     // First run shader compilation tracking
     bool m_isFirstRun = false;

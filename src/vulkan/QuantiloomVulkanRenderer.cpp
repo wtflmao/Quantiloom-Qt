@@ -135,6 +135,11 @@ void QuantiloomVulkanRenderer::releaseSwapChainResources() {
 }
 
 void QuantiloomVulkanRenderer::releaseResources() {
+    // Save current scene path for reload after window restore
+    if (!m_currentScenePath.isEmpty()) {
+        m_pendingScenePath = m_currentScenePath;
+        qDebug() << "Saved scene path for restore:" << m_pendingScenePath;
+    }
     m_renderContext.reset();
     m_initialized = false;
 }
@@ -208,7 +213,7 @@ void QuantiloomVulkanRenderer::loadScene(const QString& filePath) {
         // Create modal progress dialog
         // Note: Using nullptr as parent since QVulkanWindow is not a QWidget
         progressDialog = new QProgressDialog(
-            QObject::tr("First run, compiling shaders...\nIt may take a few minutes."),
+            QObject::tr("Compiling and loading shaders...\nIt may take a few minutes."),
             QString(),  // No cancel button
             0, 0,       // Indeterminate progress
             nullptr
@@ -258,6 +263,17 @@ void QuantiloomVulkanRenderer::loadScene(const QString& filePath) {
 
     if (result) {
         qDebug() << "  Scene loaded successfully!";
+        m_currentScenePath = filePath;  // Save for restore after minimize
+
+        // Re-apply stored render settings (important for restore after minimize)
+        if (m_hasLightingParams) {
+            qDebug() << "  Re-applying stored LightingParams";
+            m_renderContext->SetLightingParams(m_lightingParams);
+        }
+        m_renderContext->SetSpectralMode(m_spectralMode);
+        m_renderContext->SetSPP(m_targetSPP);
+        m_renderContext->SetWavelength(m_wavelength);
+
         resetAccumulation();
         emit m_window->sceneLoaded(true, QObject::tr("Scene loaded successfully"));
     } else {
@@ -323,6 +339,7 @@ void QuantiloomVulkanRenderer::setWavelength(float wavelength_nm) {
 }
 
 void QuantiloomVulkanRenderer::setSpectralMode(quantiloom::SpectralMode mode) {
+    m_spectralMode = mode;  // Store for restore
     if (m_renderContext) {
         m_renderContext->SetSpectralMode(mode);
         resetAccumulation();
@@ -330,6 +347,8 @@ void QuantiloomVulkanRenderer::setSpectralMode(quantiloom::SpectralMode mode) {
 }
 
 void QuantiloomVulkanRenderer::setLightingParams(const quantiloom::LightingParams& params) {
+    m_lightingParams = params;  // Store for restore
+    m_hasLightingParams = true;
     if (m_renderContext) {
         m_renderContext->SetLightingParams(params);
         resetAccumulation();

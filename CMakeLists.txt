@@ -249,6 +249,51 @@ if(WIN32)
             COMMENT "Copying shader files from SDK..."
         )
     endif()
+
+    # ========================================================================
+    # Copy OpenUSD Runtime Dependencies from SDK
+    # ========================================================================
+    file(GLOB USD_DLLS "${QUANTILOOM_SDK_DIR}/bin/usd_*.dll")
+    file(GLOB TBB_DLLS "${QUANTILOOM_SDK_DIR}/bin/tbb*.dll")
+
+    if(USD_DLLS)
+        add_custom_command(TARGET QuantiloomQt POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${USD_DLLS}
+                $<TARGET_FILE_DIR:QuantiloomQt>
+            COMMENT "Copying OpenUSD DLLs from SDK..."
+        )
+    endif()
+
+    if(TBB_DLLS)
+        add_custom_command(TARGET QuantiloomQt POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${TBB_DLLS}
+                $<TARGET_FILE_DIR:QuantiloomQt>
+            COMMENT "Copying TBB DLLs from SDK..."
+        )
+    endif()
+
+    # Copy USD plugin directory
+    if(EXISTS "${QUANTILOOM_SDK_DIR}/bin/usd")
+        add_custom_command(TARGET QuantiloomQt POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${QUANTILOOM_SDK_DIR}/bin/usd"
+                "$<TARGET_FILE_DIR:QuantiloomQt>/usd"
+            COMMENT "Copying USD plugins from SDK..."
+        )
+    endif()
+
+    # Copy MaterialX DLLs (optional)
+    file(GLOB MATERIALX_DLLS "${QUANTILOOM_SDK_DIR}/bin/MaterialX*.dll")
+    if(MATERIALX_DLLS)
+        add_custom_command(TARGET QuantiloomQt POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${MATERIALX_DLLS}
+                $<TARGET_FILE_DIR:QuantiloomQt>
+            COMMENT "Copying MaterialX DLLs from SDK..."
+        )
+    endif()
 endif()
 
 # ============================================================================

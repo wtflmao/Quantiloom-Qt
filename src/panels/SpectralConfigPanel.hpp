@@ -47,7 +47,7 @@ private:
     void updateModeDescription(quantiloom::SpectralMode mode);
 
     // Current settings
-    quantiloom::SpectralMode m_mode = quantiloom::SpectralMode::RGB_Fused;
+    quantiloom::SpectralMode m_mode = quantiloom::SpectralMode::RGB;
     float m_wavelength = 550.0f;
     float m_lambdaMin = 380.0f;
     float m_lambdaMax = 760.0f;
