@@ -79,6 +79,11 @@ public:
     void setSpectralMode(quantiloom::SpectralMode mode);
 
     /**
+     * @brief Set debug visualization mode
+     */
+    void setDebugMode(quantiloom::DebugVisualizationMode mode);
+
+    /**
      * @brief Update lighting parameters
      */
     void setLightingParams(const quantiloom::LightingParams& params);
@@ -102,6 +107,27 @@ public:
      * @brief Get current scene (may be null)
      */
     const quantiloom::Scene* getScene() const;
+
+    /**
+     * @brief Read debug pixel value at position
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @param outValue Output pixel value
+     * @return true if read succeeded
+     */
+    bool readDebugPixel(int x, int y, glm::vec4& outValue);
+
+    /**
+     * @brief Format debug value based on current debug mode
+     * @param pixel Raw pixel value
+     * @return Formatted string
+     */
+    QString formatDebugValue(const glm::vec4& pixel) const;
+
+    /**
+     * @brief Get current debug visualization mode
+     */
+    quantiloom::DebugVisualizationMode getDebugMode() const;
 
     // ========================================================================
     // Scene Editing
@@ -161,6 +187,13 @@ signals:
      */
     void editModeChanged(bool editMode);
 
+    /**
+     * @brief Emitted when mouse hovers over viewport (for debug value display)
+     * @param x X coordinate in pixels
+     * @param y Y coordinate in pixels
+     */
+    void mouseHovered(int x, int y);
+
 protected:
     void keyPressEvent(QKeyEvent* event) override;
     void keyReleaseEvent(QKeyEvent* event) override;
@@ -168,6 +201,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
+    bool event(QEvent* event) override;  // For hover events
 
 private:
     friend class QuantiloomVulkanRenderer;

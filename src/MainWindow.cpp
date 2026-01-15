@@ -12,6 +12,7 @@
 #include "panels/LightingPanel.hpp"
 #include "panels/RenderSettingsPanel.hpp"
 #include "panels/SpectralConfigPanel.hpp"
+#include "panels/DebugVisualizationPanel.hpp"
 #include "config/ConfigManager.hpp"
 #include "editing/SelectionManager.hpp"
 #include "editing/TransformGizmo.hpp"
@@ -32,6 +33,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QCloseEvent>
+#include <QMouseEvent>
 #include <QVBoxLayout>
 #include <QFileInfo>
 #include <QSettings>
@@ -74,6 +76,8 @@ void MainWindow::setupUi() {
     m_vulkanContainer = QWidget::createWindowContainer(m_vulkanWindow);
     m_vulkanContainer->setMinimumSize(640, 480);
     m_vulkanContainer->setFocusPolicy(Qt::StrongFocus);
+    m_vulkanContainer->setMouseTracking(true);  // Enable mouse tracking for hover
+    m_vulkanContainer->installEventFilter(this);  // Capture mouse move events
 
     setCentralWidget(m_vulkanContainer);
 }
@@ -193,6 +197,7 @@ void MainWindow::setupDockWidgets() {
     m_lightingPanel = new LightingPanel();
     m_renderSettingsPanel = new RenderSettingsPanel();
     m_spectralConfigPanel = new SpectralConfigPanel();
+    m_debugVisualizationPanel = new DebugVisualizationPanel();
 
     // Add panels to tabs
     m_parameterTabs->addTab(m_sceneTreePanel, tr("Scene"));
@@ -200,6 +205,7 @@ void MainWindow::setupDockWidgets() {
     m_parameterTabs->addTab(m_lightingPanel, tr("Lighting"));
     m_parameterTabs->addTab(m_renderSettingsPanel, tr("Render"));
     m_parameterTabs->addTab(m_spectralConfigPanel, tr("Spectral"));
+    m_parameterTabs->addTab(m_debugVisualizationPanel, tr("Debug"));
 
     m_parameterDock->setWidget(m_parameterTabs);
     addDockWidget(Qt::LeftDockWidgetArea, m_parameterDock);
@@ -229,6 +235,9 @@ void MainWindow::setupDockWidgets() {
             this, &MainWindow::onSpectralModeChanged);
     connect(m_spectralConfigPanel, &SpectralConfigPanel::wavelengthChanged,
             this, &MainWindow::onWavelengthChanged);
+
+    connect(m_debugVisualizationPanel, &DebugVisualizationPanel::debugModeChanged,
+            this, &MainWindow::onDebugModeChanged);
 }
 
 void MainWindow::setupStatusBar() {
@@ -237,11 +246,15 @@ void MainWindow::setupStatusBar() {
     m_sampleCountLabel = new QLabel(tr("Samples: 0"));
     m_editModeLabel = new QLabel(tr("[G] Translate"));
     m_editModeLabel->setStyleSheet("QLabel { background-color: #4a90d9; color: white; padding: 2px 8px; border-radius: 3px; font-weight: bold; }");
+    m_debugValueLabel = new QLabel(tr("Click to inspect"));
+    m_debugValueLabel->setMinimumWidth(250);
+    m_debugValueLabel->setStyleSheet("QLabel { font-family: monospace; }");
     m_renderProgress = new QProgressBar();
     m_renderProgress->setMaximumWidth(200);
     m_renderProgress->setVisible(false);
 
     statusBar()->addWidget(m_statusLabel, 1);
+    statusBar()->addPermanentWidget(m_debugValueLabel);
     statusBar()->addPermanentWidget(m_editModeLabel);
     statusBar()->addPermanentWidget(m_sampleCountLabel);
     statusBar()->addPermanentWidget(m_fpsLabel);
@@ -268,6 +281,10 @@ void MainWindow::setupConnections() {
     // Connect viewport click for selection
     connect(m_vulkanWindow, &QuantiloomVulkanWindow::viewportClicked,
             this, &MainWindow::onViewportClicked);
+
+    // Connect viewport hover for debug value display
+    connect(m_vulkanWindow, &QuantiloomVulkanWindow::mouseHovered,
+            this, &MainWindow::onViewportHovered);
 }
 
 void MainWindow::setupEditingSystem() {
@@ -342,6 +359,13 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     }
 
     event->accept();
+}
+
+bool MainWindow::eventFilter(QObject* watched, QEvent* event) {
+    // Currently unused - debug values are shown on left click via mouseHovered signal
+    Q_UNUSED(watched)
+    Q_UNUSED(event)
+    return QMainWindow::eventFilter(watched, event);
 }
 
 // ============================================================================
@@ -526,6 +550,59 @@ void MainWindow::onSpectralModeChanged(quantiloom::SpectralMode mode) {
 void MainWindow::onWavelengthChanged(float wavelength_nm) {
     m_vulkanWindow->setWavelength(wavelength_nm);
     m_statusLabel->setText(tr("Wavelength: %1 nm").arg(wavelength_nm, 0, 'f', 0));
+}
+
+void MainWindow::onDebugModeChanged(quantiloom::DebugVisualizationMode mode) {
+    m_vulkanWindow->setDebugMode(mode);
+    QString modeName;
+    switch (mode) {
+        case quantiloom::DebugVisualizationMode::None: modeName = "None"; break;
+        // Geometry
+        case quantiloom::DebugVisualizationMode::WorldPosition: modeName = "World Position"; break;
+        case quantiloom::DebugVisualizationMode::GeometricNormal: modeName = "Geometric Normal"; break;
+        case quantiloom::DebugVisualizationMode::ShadedNormal: modeName = "Shaded Normal"; break;
+        case quantiloom::DebugVisualizationMode::Tangent: modeName = "Tangent"; break;
+        case quantiloom::DebugVisualizationMode::UV: modeName = "UV"; break;
+        case quantiloom::DebugVisualizationMode::MaterialID: modeName = "Material ID"; break;
+        case quantiloom::DebugVisualizationMode::TriangleID: modeName = "Triangle ID"; break;
+        case quantiloom::DebugVisualizationMode::Barycentric: modeName = "Barycentric"; break;
+        // Material
+        case quantiloom::DebugVisualizationMode::BaseColor: modeName = "Base Color"; break;
+        case quantiloom::DebugVisualizationMode::Metallic: modeName = "Metallic"; break;
+        case quantiloom::DebugVisualizationMode::Roughness: modeName = "Roughness"; break;
+        case quantiloom::DebugVisualizationMode::NormalMapDelta: modeName = "Normal Map Delta"; break;
+        case quantiloom::DebugVisualizationMode::Emissive: modeName = "Emissive"; break;
+        case quantiloom::DebugVisualizationMode::Alpha: modeName = "Alpha"; break;
+        // Lighting
+        case quantiloom::DebugVisualizationMode::NdotL: modeName = "NdotL"; break;
+        case quantiloom::DebugVisualizationMode::NdotV: modeName = "NdotV"; break;
+        case quantiloom::DebugVisualizationMode::DirectSun: modeName = "Direct Sun"; break;
+        case quantiloom::DebugVisualizationMode::Diffuse: modeName = "Diffuse"; break;
+        case quantiloom::DebugVisualizationMode::AtmosphericTransmittance: modeName = "Atmospheric Transmittance"; break;
+        // BRDF
+        case quantiloom::DebugVisualizationMode::FresnelF0: modeName = "Fresnel F0"; break;
+        case quantiloom::DebugVisualizationMode::Fresnel: modeName = "Fresnel"; break;
+        case quantiloom::DebugVisualizationMode::BRDF_Full: modeName = "BRDF Full"; break;
+        case quantiloom::DebugVisualizationMode::SpecularD: modeName = "Specular D"; break;
+        case quantiloom::DebugVisualizationMode::SpecularG: modeName = "Specular G"; break;
+        // IBL
+        case quantiloom::DebugVisualizationMode::ReflectionDir: modeName = "Reflection Dir"; break;
+        case quantiloom::DebugVisualizationMode::PrefilteredEnv: modeName = "Prefiltered Env"; break;
+        case quantiloom::DebugVisualizationMode::BrdfLut: modeName = "BRDF LUT"; break;
+        case quantiloom::DebugVisualizationMode::IblSpecular: modeName = "IBL Specular"; break;
+        case quantiloom::DebugVisualizationMode::SkyAmbient: modeName = "Sky Ambient"; break;
+        // Spectral
+        case quantiloom::DebugVisualizationMode::XYZ_Tristimulus: modeName = "XYZ Tristimulus"; break;
+        case quantiloom::DebugVisualizationMode::BeforeChromaCorrection: modeName = "Before Chroma Correction"; break;
+        case quantiloom::DebugVisualizationMode::SpectralReflectance550: modeName = "Spectral Reflectance @550nm"; break;
+        // IR
+        case quantiloom::DebugVisualizationMode::Temperature: modeName = "Temperature"; break;
+        case quantiloom::DebugVisualizationMode::IREmissivity: modeName = "IR Emissivity"; break;
+        case quantiloom::DebugVisualizationMode::IREmission: modeName = "IR Emission"; break;
+        case quantiloom::DebugVisualizationMode::IRReflection: modeName = "IR Reflection"; break;
+        default: modeName = "Unknown"; break;
+    }
+    m_statusLabel->setText(tr("Debug mode: %1").arg(modeName));
 }
 
 void MainWindow::onResetAccumulation() {
@@ -813,4 +890,22 @@ void MainWindow::onUndoRedoChanged() {
     m_redoAction->setEnabled(m_undoStack->canRedo());
     m_undoAction->setText(m_undoStack->undoText());
     m_redoAction->setText(m_undoStack->redoText());
+}
+
+void MainWindow::onViewportHovered(int x, int y) {
+    // Only show debug values when debug mode is active
+    auto debugMode = m_vulkanWindow->getDebugMode();
+    if (debugMode == quantiloom::DebugVisualizationMode::None) {
+        m_debugValueLabel->setText(tr("Click to inspect (select debug mode first)"));
+        return;
+    }
+
+    // Read pixel value from render output
+    glm::vec4 pixelValue;
+    if (m_vulkanWindow->readDebugPixel(x, y, pixelValue)) {
+        QString formatted = m_vulkanWindow->formatDebugValue(pixelValue);
+        m_debugValueLabel->setText(QString("(%1,%2) %3").arg(x).arg(y).arg(formatted));
+    } else {
+        m_debugValueLabel->setText(QString("(%1,%2) read failed").arg(x).arg(y));
+    }
 }

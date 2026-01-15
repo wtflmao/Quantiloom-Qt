@@ -114,6 +114,8 @@ set(GUI_SOURCES
     src/panels/RenderSettingsPanel.hpp
     src/panels/SpectralConfigPanel.cpp
     src/panels/SpectralConfigPanel.hpp
+    src/panels/DebugVisualizationPanel.cpp
+    src/panels/DebugVisualizationPanel.hpp
     # Configuration management
     src/config/ConfigManager.cpp
     src/config/ConfigManager.hpp

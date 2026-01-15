@@ -15,6 +15,7 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QWheelEvent>
+#include <QHoverEvent>
 #include <QDebug>
 
 #include <renderer/ExternalRenderContext.hpp>
@@ -164,6 +165,12 @@ void QuantiloomVulkanWindow::setSpectralMode(quantiloom::SpectralMode mode) {
     }
 }
 
+void QuantiloomVulkanWindow::setDebugMode(quantiloom::DebugVisualizationMode mode) {
+    if (m_renderer) {
+        m_renderer->setDebugMode(mode);
+    }
+}
+
 void QuantiloomVulkanWindow::setLightingParams(const quantiloom::LightingParams& params) {
     if (m_renderer) {
         m_renderer->setLightingParams(params);
@@ -184,6 +191,18 @@ void QuantiloomVulkanWindow::resetAccumulation() {
 
 const quantiloom::Scene* QuantiloomVulkanWindow::getScene() const {
     return m_renderer ? m_renderer->getScene() : nullptr;
+}
+
+bool QuantiloomVulkanWindow::readDebugPixel(int x, int y, glm::vec4& outValue) {
+    return m_renderer ? m_renderer->readDebugPixel(x, y, outValue) : false;
+}
+
+QString QuantiloomVulkanWindow::formatDebugValue(const glm::vec4& pixel) const {
+    return m_renderer ? m_renderer->formatDebugValue(pixel) : QString("--");
+}
+
+quantiloom::DebugVisualizationMode QuantiloomVulkanWindow::getDebugMode() const {
+    return m_renderer ? m_renderer->getDebugMode() : quantiloom::DebugVisualizationMode::None;
 }
 
 // ============================================================================
@@ -346,32 +365,38 @@ void QuantiloomVulkanWindow::keyReleaseEvent(QKeyEvent* event) {
 }
 
 void QuantiloomVulkanWindow::mousePressEvent(QMouseEvent* event) {
-    if (event->button() == Qt::LeftButton && m_editMode) {
-        // Edit mode: Left click for selection or transform start
-        if (m_selection && m_selection->hasSelection() && m_gizmo) {
-            // Start transform drag
-            m_transformDragging = true;
-            m_transformDragStart = event->position();
+    if (event->button() == Qt::LeftButton) {
+        // Always emit for debug value display (regardless of edit mode)
+        QPointF pos = event->position();
+        emit mouseHovered(static_cast<int>(pos.x()), static_cast<int>(pos.y()));
 
-            qDebug() << "Starting transform drag - hasSelection:" << m_selection->hasSelection()
-                     << "count:" << m_selection->selectionCount();
+        if (m_editMode) {
+            // Edit mode: Left click for selection or transform start
+            if (m_selection && m_selection->hasSelection() && m_gizmo) {
+                // Start transform drag
+                m_transformDragging = true;
+                m_transformDragStart = event->position();
 
-            glm::vec3 camPos, camFwd, camRight, camUp;
-            getCameraInfo(camPos, camFwd, camRight, camUp);
+                qDebug() << "Starting transform drag - hasSelection:" << m_selection->hasSelection()
+                         << "count:" << m_selection->selectionCount();
 
-            // Set pivot at selection center
-            const auto* scene = getScene();
-            if (scene) {
-                glm::vec3 pivot = m_selection->computeSelectionCenter(scene);
-                m_gizmo->setPivot(pivot);
-                qDebug() << "  Pivot:" << pivot.x << pivot.y << pivot.z;
+                glm::vec3 camPos, camFwd, camRight, camUp;
+                getCameraInfo(camPos, camFwd, camRight, camUp);
+
+                // Set pivot at selection center
+                const auto* scene = getScene();
+                if (scene) {
+                    glm::vec3 pivot = m_selection->computeSelectionCenter(scene);
+                    m_gizmo->setPivot(pivot);
+                    qDebug() << "  Pivot:" << pivot.x << pivot.y << pivot.z;
+                }
+
+                m_gizmo->beginDrag(event->position(), camPos, camFwd, camRight, camUp);
+            } else {
+                qDebug() << "No selection - emitting viewportClicked";
+                // Click for selection
+                emit viewportClicked(event->position());
             }
-
-            m_gizmo->beginDrag(event->position(), camPos, camFwd, camRight, camUp);
-        } else {
-            qDebug() << "No selection - emitting viewportClicked";
-            // Click for selection
-            emit viewportClicked(event->position());
         }
         event->accept();
         return;
@@ -445,4 +470,14 @@ void QuantiloomVulkanWindow::wheelEvent(QWheelEvent* event) {
     } else {
         QVulkanWindow::wheelEvent(event);
     }
+}
+
+bool QuantiloomVulkanWindow::event(QEvent* event) {
+    if (event->type() == QEvent::HoverMove) {
+        auto* hoverEvent = static_cast<QHoverEvent*>(event);
+        QPointF pos = hoverEvent->position();
+        emit mouseHovered(static_cast<int>(pos.x()), static_cast<int>(pos.y()));
+        // Don't accept - let base class handle too
+    }
+    return QVulkanWindow::event(event);
 }

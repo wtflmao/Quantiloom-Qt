@@ -54,6 +54,7 @@ public:
     void setSPP(uint32_t spp);
     void setWavelength(float wavelength_nm);
     void setSpectralMode(quantiloom::SpectralMode mode);
+    void setDebugMode(quantiloom::DebugVisualizationMode mode);
     void setLightingParams(const quantiloom::LightingParams& params);
     void updateMaterial(int index, const quantiloom::Material& material);
     void resetAccumulation();
@@ -79,6 +80,28 @@ public:
     void orbitCamera(float deltaX, float deltaY);
     void panCamera(float deltaX, float deltaY);
     void zoomCamera(float delta);
+
+    // Debug pixel reading
+    /**
+     * @brief Read raw pixel value from render output
+     * @param x X coordinate (pixels)
+     * @param y Y coordinate (pixels)
+     * @param outValue Output float4 value
+     * @return true if read succeeded
+     */
+    bool readDebugPixel(int x, int y, glm::vec4& outValue);
+
+    /**
+     * @brief Format debug pixel value based on current debug mode
+     * @param pixel Raw pixel value from readDebugPixel
+     * @return Formatted string for display
+     */
+    QString formatDebugValue(const glm::vec4& pixel) const;
+
+    /**
+     * @brief Get current debug visualization mode
+     */
+    quantiloom::DebugVisualizationMode getDebugMode() const { return m_debugMode; }
 
 private:
     void updateCamera(float deltaTime);
@@ -125,6 +148,7 @@ private:
     // Spectral mode
     float m_wavelength = 550.0f;  // nm
     quantiloom::SpectralMode m_spectralMode = quantiloom::SpectralMode::RGB;
+    quantiloom::DebugVisualizationMode m_debugMode = quantiloom::DebugVisualizationMode::None;
 
     // Lighting params (stored for restore after window minimize)
     quantiloom::LightingParams m_lightingParams = quantiloom::CreateDefaultLightingParams();

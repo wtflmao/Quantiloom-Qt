@@ -38,6 +38,7 @@ class MaterialEditorPanel;
 class LightingPanel;
 class RenderSettingsPanel;
 class SpectralConfigPanel;
+class DebugVisualizationPanel;
 class ConfigManager;
 class SelectionManager;
 class TransformGizmo;
@@ -62,6 +63,7 @@ public:
 
 protected:
     void closeEvent(QCloseEvent* event) override;
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
 private slots:
     // File menu actions
@@ -95,6 +97,7 @@ private slots:
     void onSppChanged(uint32_t spp);
     void onSpectralModeChanged(quantiloom::SpectralMode mode);
     void onWavelengthChanged(float wavelength_nm);
+    void onDebugModeChanged(quantiloom::DebugVisualizationMode mode);
     void onResetAccumulation();
 
     // Editing slots
@@ -105,6 +108,9 @@ private slots:
                                   const glm::vec3& scale);
     void onGizmoTransformFinished();
     void onUndoRedoChanged();
+
+    // Debug hover slot
+    void onViewportHovered(int x, int y);
 
 private:
     void setupUi();
@@ -132,12 +138,14 @@ private:
     LightingPanel* m_lightingPanel = nullptr;
     RenderSettingsPanel* m_renderSettingsPanel = nullptr;
     SpectralConfigPanel* m_spectralConfigPanel = nullptr;
+    DebugVisualizationPanel* m_debugVisualizationPanel = nullptr;
 
     // Status bar widgets
     QLabel* m_statusLabel = nullptr;
     QLabel* m_fpsLabel = nullptr;
     QLabel* m_sampleCountLabel = nullptr;
     QLabel* m_editModeLabel = nullptr;  // Shows current transform mode
+    QLabel* m_debugValueLabel = nullptr;  // Shows debug value at mouse position
     QProgressBar* m_renderProgress = nullptr;
 
     // Configuration manager
