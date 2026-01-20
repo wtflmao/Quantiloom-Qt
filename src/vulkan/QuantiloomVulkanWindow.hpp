@@ -20,6 +20,7 @@ class Scene;
 struct Material;
 struct LightingParams;
 struct Image;
+struct SensorParams;
 }
 
 class QuantiloomVulkanRenderer;
@@ -134,6 +135,44 @@ public:
      * @brief Capture current frame as Image
      */
     std::unique_ptr<quantiloom::Image> captureScreenshot();
+
+    // ========================================================================
+    // Atmospheric Configuration
+    // ========================================================================
+
+    /**
+     * @brief Set atmospheric configuration by preset name
+     * @param preset Preset name: "clear_day", "hazy", "polluted_urban",
+     *               "mountain_top", "mars", "disabled"
+     */
+    void setAtmosphericPreset(const QString& preset);
+
+    // ========================================================================
+    // Environment Map (IBL)
+    // ========================================================================
+
+    /**
+     * @brief Load HDR environment map for IBL
+     * @param hdrPath Path to equirectangular HDR image (.exr, .hdr)
+     * @return true if loading succeeded
+     */
+    bool loadEnvironmentMap(const QString& hdrPath);
+
+    // ========================================================================
+    // Sensor Simulation
+    // ========================================================================
+
+    /**
+     * @brief Enable or disable sensor simulation
+     * @param enabled true to enable sensor post-processing
+     */
+    void setSensorEnabled(bool enabled);
+
+    /**
+     * @brief Set sensor parameters
+     * @param params Sensor parameters (optics, detector, noise, etc.)
+     */
+    void setSensorParams(const quantiloom::SensorParams& params);
 
     // ========================================================================
     // Scene Editing

@@ -10,6 +10,7 @@
 
 #include <renderer/ExternalRenderContext.hpp>
 #include <renderer/LightingParams.hpp>
+#include <renderer/AtmosphericConfig.hpp>
 #include <scene/Material.hpp>
 #include <scene/Scene.hpp>
 #include <core/Image.hpp>
@@ -647,4 +648,99 @@ std::unique_ptr<quantiloom::Image> QuantiloomVulkanRenderer::captureScreenshot()
     }
 
     return std::make_unique<quantiloom::Image>(std::move(result.value()));
+}
+
+// ============================================================================
+// Atmospheric Configuration
+// ============================================================================
+
+void QuantiloomVulkanRenderer::setAtmosphericPreset(const QString& preset) {
+    m_atmosphericPreset = preset;
+    std::string presetStr = preset.toLower().toStdString();
+
+    if (presetStr == "clear_day") {
+        m_atmosphericConfig = quantiloom::AtmosphericConfig::ClearDay();
+    } else if (presetStr == "hazy") {
+        m_atmosphericConfig = quantiloom::AtmosphericConfig::Hazy();
+    } else if (presetStr == "polluted_urban") {
+        m_atmosphericConfig = quantiloom::AtmosphericConfig::PollutedUrban();
+    } else if (presetStr == "mountain_top") {
+        m_atmosphericConfig = quantiloom::AtmosphericConfig::MountainTop();
+    } else if (presetStr == "mars") {
+        m_atmosphericConfig = quantiloom::AtmosphericConfig::Mars();
+    } else {
+        m_atmosphericConfig = quantiloom::AtmosphericConfig::Disabled();
+    }
+
+    if (m_renderContext) {
+        m_renderContext->SetAtmosphericConfig(m_atmosphericConfig);
+    }
+
+    qDebug() << "Atmospheric preset set to:" << preset;
+}
+
+void QuantiloomVulkanRenderer::setAtmosphericConfig(const quantiloom::AtmosphericConfig& config) {
+    m_atmosphericConfig = config;
+
+    if (m_renderContext) {
+        m_renderContext->SetAtmosphericConfig(m_atmosphericConfig);
+    }
+}
+
+// ============================================================================
+// Environment Map (IBL)
+// ============================================================================
+
+bool QuantiloomVulkanRenderer::loadEnvironmentMap(const QString& hdrPath) {
+    if (!m_renderContext) {
+        qWarning() << "Cannot load environment map: render context not initialized";
+        return false;
+    }
+
+    if (hdrPath.isEmpty()) {
+        qWarning() << "Empty environment map path";
+        return false;
+    }
+
+    qDebug() << "Loading environment map:" << hdrPath;
+
+    auto result = m_renderContext->LoadEnvironmentMap(hdrPath.toStdString());
+    if (!result.has_value()) {
+        qWarning() << "Failed to load environment map:"
+                   << QString::fromStdString(result.error());
+        return false;
+    }
+
+    qDebug() << "Environment map loaded successfully";
+    return true;
+}
+
+bool QuantiloomVulkanRenderer::hasEnvironmentMap() const {
+    return m_renderContext && m_renderContext->HasEnvironmentMap();
+}
+
+// ============================================================================
+// Sensor Simulation
+// ============================================================================
+
+void QuantiloomVulkanRenderer::setSensorEnabled(bool enabled) {
+    m_sensorEnabled = enabled;
+
+    if (enabled && !m_sensor) {
+        m_sensor = std::make_unique<quantiloom::GenericSensor>();
+    }
+
+    qDebug() << "Sensor simulation" << (enabled ? "enabled" : "disabled");
+}
+
+void QuantiloomVulkanRenderer::setSensorParams(const quantiloom::SensorParams& params) {
+    m_sensorParams = params;
+
+    if (!m_sensor) {
+        m_sensor = std::make_unique<quantiloom::GenericSensor>();
+    }
+
+    qDebug() << "Sensor params updated: focal_length=" << params.focalLength_mm
+             << "mm, f/" << params.fNumber
+             << ", bit_depth=" << params.bitDepth;
 }

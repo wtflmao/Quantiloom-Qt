@@ -11,6 +11,7 @@
 #include <core/Config.hpp>
 #include <core/Types.hpp>
 #include <renderer/LightingParams.hpp>
+#include <postprocess/SensorModel.hpp>
 
 /**
  * @struct SceneConfig
@@ -44,6 +45,14 @@ struct SceneConfig {
 
     // [lighting]
     quantiloom::LightingParams lighting;
+
+    // [atmospheric]
+    QString atmosphericPreset = "disabled";  // Preset name
+    bool atmosphericEnabled = false;
+
+    // [sensor]
+    bool sensorEnabled = false;
+    quantiloom::SensorParams sensorParams;
 
     // Config file base directory (for resolving relative paths)
     QString baseDir;

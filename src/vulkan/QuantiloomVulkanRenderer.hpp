@@ -16,6 +16,9 @@
 #include <glm/glm.hpp>
 #include <core/Types.hpp>
 #include <renderer/LightingParams.hpp>
+#include <renderer/AtmosphericConfig.hpp>
+#include <postprocess/SensorModel.hpp>
+#include <postprocess/GenericSensor.hpp>
 
 class QuantiloomVulkanWindow;
 class QProgressDialog;
@@ -110,6 +113,70 @@ public:
      */
     std::unique_ptr<quantiloom::Image> captureScreenshot();
 
+    // ========================================================================
+    // Atmospheric Configuration
+    // ========================================================================
+
+    /**
+     * @brief Set atmospheric configuration by preset name
+     * @param preset Preset name: "clear_day", "hazy", "polluted_urban",
+     *               "mountain_top", "mars", "disabled"
+     */
+    void setAtmosphericPreset(const QString& preset);
+
+    /**
+     * @brief Set atmospheric configuration directly
+     * @param config Atmospheric configuration
+     */
+    void setAtmosphericConfig(const quantiloom::AtmosphericConfig& config);
+
+    /**
+     * @brief Get current atmospheric configuration
+     */
+    const quantiloom::AtmosphericConfig& getAtmosphericConfig() const { return m_atmosphericConfig; }
+
+    // ========================================================================
+    // Environment Map (IBL)
+    // ========================================================================
+
+    /**
+     * @brief Load HDR environment map for IBL
+     * @param hdrPath Path to equirectangular HDR image (.exr, .hdr)
+     * @return true if loading succeeded
+     */
+    bool loadEnvironmentMap(const QString& hdrPath);
+
+    /**
+     * @brief Check if custom environment map is loaded
+     */
+    bool hasEnvironmentMap() const;
+
+    // ========================================================================
+    // Sensor Simulation
+    // ========================================================================
+
+    /**
+     * @brief Enable or disable sensor simulation
+     * @param enabled true to enable sensor post-processing
+     */
+    void setSensorEnabled(bool enabled);
+
+    /**
+     * @brief Set sensor parameters
+     * @param params Sensor parameters (optics, detector, noise, etc.)
+     */
+    void setSensorParams(const quantiloom::SensorParams& params);
+
+    /**
+     * @brief Check if sensor simulation is enabled
+     */
+    bool isSensorEnabled() const { return m_sensorEnabled; }
+
+    /**
+     * @brief Get current sensor parameters
+     */
+    const quantiloom::SensorParams& getSensorParams() const { return m_sensorParams; }
+
 private:
     void updateCamera(float deltaTime);
 
@@ -160,6 +227,15 @@ private:
     // Lighting params (stored for restore after window minimize)
     quantiloom::LightingParams m_lightingParams = quantiloom::CreateDefaultLightingParams();
     bool m_hasLightingParams = false;  // True if set from config
+
+    // Atmospheric configuration
+    quantiloom::AtmosphericConfig m_atmosphericConfig;  // Default: disabled
+    QString m_atmosphericPreset = "disabled";
+
+    // Sensor simulation
+    bool m_sensorEnabled = false;
+    quantiloom::SensorParams m_sensorParams;
+    std::unique_ptr<quantiloom::GenericSensor> m_sensor;
 
     // Initialization state
     bool m_initialized = false;

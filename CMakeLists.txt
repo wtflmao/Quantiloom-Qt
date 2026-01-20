@@ -116,6 +116,10 @@ set(GUI_SOURCES
     src/panels/SpectralConfigPanel.hpp
     src/panels/DebugVisualizationPanel.cpp
     src/panels/DebugVisualizationPanel.hpp
+    src/panels/AtmosphericPanel.cpp
+    src/panels/AtmosphericPanel.hpp
+    src/panels/SensorPanel.cpp
+    src/panels/SensorPanel.hpp
     # Configuration management
     src/config/ConfigManager.cpp
     src/config/ConfigManager.hpp

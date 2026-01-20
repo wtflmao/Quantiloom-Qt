@@ -11,6 +11,8 @@
 #include <QDebug>
 #include <cctype>
 
+#include <postprocess/PostprocessConfig.hpp>
+
 ConfigManager::ConfigManager(QObject* parent)
     : QObject(parent)
 {
@@ -114,6 +116,17 @@ void ConfigManager::extractSceneConfig(const quantiloom::Config& config, SceneCo
     out.lighting.atmosphereTemperature_K = config.GetFloat("lighting.atmosphere_temperature_k", 260.0f);
     out.lighting.transmittance = config.GetFloat("lighting.transmittance", 0.9f);
     out.lighting.worldUnitsToMeters = out.worldUnitsToMeters;
+
+    // [atmospheric]
+    out.atmosphericPreset = QString::fromStdString(
+        config.GetString("atmospheric.preset", "disabled"));
+    out.atmosphericEnabled = (out.atmosphericPreset != "disabled");
+
+    // [sensor]
+    out.sensorEnabled = config.Get<bool>("sensor.enabled", false);
+    if (out.sensorEnabled) {
+        out.sensorParams = quantiloom::PostprocessConfig::ParseSensorParams(config);
+    }
 }
 
 quantiloom::SpectralMode ConfigManager::parseSpectralMode(const std::string& modeStr) {

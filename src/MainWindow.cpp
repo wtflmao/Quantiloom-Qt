@@ -13,6 +13,8 @@
 #include "panels/RenderSettingsPanel.hpp"
 #include "panels/SpectralConfigPanel.hpp"
 #include "panels/DebugVisualizationPanel.hpp"
+#include "panels/AtmosphericPanel.hpp"
+#include "panels/SensorPanel.hpp"
 #include "config/ConfigManager.hpp"
 #include "editing/SelectionManager.hpp"
 #include "editing/TransformGizmo.hpp"
@@ -49,6 +51,7 @@
 #include <scene/Material.hpp>
 #include <scene/Scene.hpp>
 #include <renderer/LightingParams.hpp>
+#include <postprocess/SensorModel.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -214,11 +217,15 @@ void MainWindow::setupDockWidgets() {
     m_renderSettingsPanel = new RenderSettingsPanel();
     m_spectralConfigPanel = new SpectralConfigPanel();
     m_debugVisualizationPanel = new DebugVisualizationPanel();
+    m_atmosphericPanel = new AtmosphericPanel();
+    m_sensorPanel = new SensorPanel();
 
     // Add panels to tabs
     m_parameterTabs->addTab(m_sceneTreePanel, tr("Scene"));
     m_parameterTabs->addTab(m_materialEditorPanel, tr("Material"));
     m_parameterTabs->addTab(m_lightingPanel, tr("Lighting"));
+    m_parameterTabs->addTab(m_atmosphericPanel, tr("Atmosphere"));
+    m_parameterTabs->addTab(m_sensorPanel, tr("Sensor"));
     m_parameterTabs->addTab(m_renderSettingsPanel, tr("Render"));
     m_parameterTabs->addTab(m_spectralConfigPanel, tr("Spectral"));
     m_parameterTabs->addTab(m_debugVisualizationPanel, tr("Debug"));
@@ -254,6 +261,26 @@ void MainWindow::setupDockWidgets() {
 
     connect(m_debugVisualizationPanel, &DebugVisualizationPanel::debugModeChanged,
             this, &MainWindow::onDebugModeChanged);
+
+    // Atmospheric panel signals
+    connect(m_atmosphericPanel, &AtmosphericPanel::presetChanged,
+            this, [this](const QString& preset) {
+                m_vulkanWindow->setAtmosphericPreset(preset);
+                m_statusLabel->setText(tr("Atmospheric preset: %1").arg(preset));
+            });
+
+    // Sensor panel signals
+    connect(m_sensorPanel, &SensorPanel::enabledChanged,
+            this, [this](bool enabled) {
+                m_vulkanWindow->setSensorEnabled(enabled);
+                m_statusLabel->setText(enabled ? tr("Sensor simulation enabled")
+                                               : tr("Sensor simulation disabled"));
+            });
+    connect(m_sensorPanel, &SensorPanel::paramsChanged,
+            this, [this](const quantiloom::SensorParams& params) {
+                m_vulkanWindow->setSensorParams(params);
+                m_statusLabel->setText(tr("Sensor params updated"));
+            });
 }
 
 void MainWindow::setupStatusBar() {
@@ -810,6 +837,24 @@ void MainWindow::applyConfig(const SceneConfig& config) {
     m_lightingPanel->setLightingParams(config.lighting);
     m_vulkanWindow->setLightingParams(config.lighting);
 
+    // Apply atmospheric configuration
+    m_atmosphericPanel->setPreset(config.atmosphericPreset);
+    m_vulkanWindow->setAtmosphericPreset(config.atmosphericPreset);
+    if (config.atmosphericEnabled) {
+        qDebug() << "Atmospheric preset applied:" << config.atmosphericPreset;
+    }
+
+    // Apply sensor configuration
+    m_sensorPanel->setEnabled(config.sensorEnabled);
+    if (config.sensorEnabled) {
+        m_sensorPanel->setSensorParams(config.sensorParams);
+    }
+    m_vulkanWindow->setSensorEnabled(config.sensorEnabled);
+    if (config.sensorEnabled) {
+        m_vulkanWindow->setSensorParams(config.sensorParams);
+        qDebug() << "Sensor simulation enabled with custom params";
+    }
+
     // Load scene file (glTF or USD)
     QString scenePath;
     if (!config.usdPath.isEmpty()) {
@@ -829,6 +874,20 @@ void MainWindow::applyConfig(const SceneConfig& config) {
     if (!scenePath.isEmpty()) {
         m_currentSceneFile = scenePath;
         m_vulkanWindow->loadScene(scenePath);
+    }
+
+    // Apply environment map (IBL) - do this after scene load starts
+    if (!config.environmentMap.isEmpty()) {
+        QString envPath = config.environmentMap;
+        if (!QFileInfo(envPath).isAbsolute() && !config.baseDir.isEmpty()) {
+            envPath = config.baseDir + "/" + config.environmentMap;
+        }
+        // Note: loadEnvironmentMap will be called after scene is loaded
+        // For now, store the path and attempt loading
+        qDebug() << "Environment map path:" << envPath;
+        if (!m_vulkanWindow->loadEnvironmentMap(envPath)) {
+            qWarning() << "Failed to load environment map:" << envPath;
+        }
     }
 
     // Apply camera settings (after scene load so renderer is ready)

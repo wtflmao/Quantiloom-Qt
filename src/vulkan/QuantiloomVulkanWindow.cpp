@@ -22,6 +22,7 @@
 
 #include <renderer/ExternalRenderContext.hpp>
 #include <renderer/LightingParams.hpp>
+#include <postprocess/SensorModel.hpp>
 #include <scene/Material.hpp>
 #include <scene/Scene.hpp>
 
@@ -209,6 +210,40 @@ quantiloom::DebugVisualizationMode QuantiloomVulkanWindow::getDebugMode() const 
 
 std::unique_ptr<quantiloom::Image> QuantiloomVulkanWindow::captureScreenshot() {
     return m_renderer ? m_renderer->captureScreenshot() : nullptr;
+}
+
+// ============================================================================
+// Atmospheric Configuration
+// ============================================================================
+
+void QuantiloomVulkanWindow::setAtmosphericPreset(const QString& preset) {
+    if (m_renderer) {
+        m_renderer->setAtmosphericPreset(preset);
+    }
+}
+
+// ============================================================================
+// Environment Map (IBL)
+// ============================================================================
+
+bool QuantiloomVulkanWindow::loadEnvironmentMap(const QString& hdrPath) {
+    return m_renderer ? m_renderer->loadEnvironmentMap(hdrPath) : false;
+}
+
+// ============================================================================
+// Sensor Simulation
+// ============================================================================
+
+void QuantiloomVulkanWindow::setSensorEnabled(bool enabled) {
+    if (m_renderer) {
+        m_renderer->setSensorEnabled(enabled);
+    }
+}
+
+void QuantiloomVulkanWindow::setSensorParams(const quantiloom::SensorParams& params) {
+    if (m_renderer) {
+        m_renderer->setSensorParams(params);
+    }
 }
 
 // ============================================================================

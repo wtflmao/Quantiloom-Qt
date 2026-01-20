@@ -39,6 +39,8 @@ class LightingPanel;
 class RenderSettingsPanel;
 class SpectralConfigPanel;
 class DebugVisualizationPanel;
+class AtmosphericPanel;
+class SensorPanel;
 class ConfigManager;
 class SelectionManager;
 class TransformGizmo;
@@ -142,6 +144,8 @@ private:
     RenderSettingsPanel* m_renderSettingsPanel = nullptr;
     SpectralConfigPanel* m_spectralConfigPanel = nullptr;
     DebugVisualizationPanel* m_debugVisualizationPanel = nullptr;
+    AtmosphericPanel* m_atmosphericPanel = nullptr;
+    SensorPanel* m_sensorPanel = nullptr;
 
     // Status bar widgets
     QLabel* m_statusLabel = nullptr;
