@@ -303,6 +303,14 @@ void MainWindow::setupConnections() {
             this, &MainWindow::onViewportHovered);
 }
 
+void MainWindow::rememberConfigPath(const QString& filePath) const {
+    if (filePath.isEmpty()) {
+        return;
+    }
+    QSettings settings;
+    settings.setValue("last_config_path", filePath);
+}
+
 void MainWindow::setupEditingSystem() {
     // Create editing components
     m_selectionManager = new SelectionManager(this);
@@ -407,8 +415,9 @@ void MainWindow::onOpenScene() {
             // Load TOML config (which may reference a glTF or USD file)
             SceneConfig config;
             if (m_configManager->loadConfig(fileName, config)) {
-                applyConfig(config);
                 m_currentConfigFile = fileName;
+                rememberConfigPath(fileName);
+                applyConfig(config);
                 m_statusLabel->setText(tr("Config loaded: %1").arg(fileName));
             } else {
                 QMessageBox::warning(this, tr("Load Failed"),
@@ -751,8 +760,9 @@ void MainWindow::onImportConfig() {
     if (!fileName.isEmpty()) {
         SceneConfig config;
         if (m_configManager->loadConfig(fileName, config)) {
-            applyConfig(config);
             m_currentConfigFile = fileName;
+            rememberConfigPath(fileName);
+            applyConfig(config);
             m_statusLabel->setText(tr("Config imported: %1").arg(fileName));
         } else {
             QMessageBox::warning(this, tr("Import Failed"),

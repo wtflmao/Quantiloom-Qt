@@ -122,6 +122,7 @@ private:
     void setupConnections();
     void setupEditingSystem();
     void updatePanelsFromScene();
+    void rememberConfigPath(const QString& filePath) const;
 
     // Vulkan instance (owned by main())
     QVulkanInstance* m_vulkanInstance = nullptr;

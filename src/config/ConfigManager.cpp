@@ -9,6 +9,7 @@
 #include <QFileInfo>
 #include <QTextStream>
 #include <QDebug>
+#include <cctype>
 
 ConfigManager::ConfigManager(QObject* parent)
     : QObject(parent)
@@ -56,7 +57,7 @@ void ConfigManager::extractSceneConfig(const quantiloom::Config& config, SceneCo
     out.environmentMap = QString::fromStdString(config.GetString("renderer.environment_map", ""));
 
     // [spectral]
-    std::string modeStr = config.GetString("spectral.mode", "rgb_fused");
+    std::string modeStr = config.GetString("spectral.mode", "rgb");
     out.spectralMode = parseSpectralMode(modeStr);
     out.wavelength_nm = config.GetFloat("spectral.wavelength_nm", 550.0f);
     out.lambda_min = config.GetFloat("spectral.lambda_min", 380.0f);
@@ -116,14 +117,32 @@ void ConfigManager::extractSceneConfig(const quantiloom::Config& config, SceneCo
 }
 
 quantiloom::SpectralMode ConfigManager::parseSpectralMode(const std::string& modeStr) {
-    if (modeStr == "single") {
+    std::string lower;
+    lower.reserve(modeStr.size());
+    for (char c : modeStr) {
+        lower.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(c))));
+    }
+
+    if (lower == "single" || lower == "single_wavelength") {
         return quantiloom::SpectralMode::Single;
-    } else if (modeStr == "mwir_fused") {
+    }
+    if (lower == "rgb") {
+        return quantiloom::SpectralMode::RGB;
+    }
+    if (lower == "vis_fused") {
+        return quantiloom::SpectralMode::VIS_Fused;
+    }
+    if (lower == "mwir_fused") {
         return quantiloom::SpectralMode::MWIR_Fused;
-    } else if (modeStr == "lwir_fused") {
+    }
+    if (lower == "lwir_fused") {
         return quantiloom::SpectralMode::LWIR_Fused;
-    } else if (modeStr == "swir_fused") {
+    }
+    if (lower == "swir_fused") {
         return quantiloom::SpectralMode::SWIR_Fused;
+    }
+    if (lower == "nir_fused") {
+        return quantiloom::SpectralMode::NIR_Fused;
     }
     // Default to RGB
     return quantiloom::SpectralMode::RGB;
@@ -162,10 +181,12 @@ bool ConfigManager::exportConfig(const QString& filePath, const SceneConfig& con
     QString modeStr;
     switch (config.spectralMode) {
         case quantiloom::SpectralMode::Single: modeStr = "single"; break;
+        case quantiloom::SpectralMode::VIS_Fused: modeStr = "vis_fused"; break;
         case quantiloom::SpectralMode::MWIR_Fused: modeStr = "mwir_fused"; break;
         case quantiloom::SpectralMode::LWIR_Fused: modeStr = "lwir_fused"; break;
         case quantiloom::SpectralMode::SWIR_Fused: modeStr = "swir_fused"; break;
-        default: modeStr = "rgb_fused"; break;
+        case quantiloom::SpectralMode::NIR_Fused: modeStr = "nir_fused"; break;
+        default: modeStr = "rgb"; break;
     }
     out << "mode = \"" << modeStr << "\"\n";
     if (config.spectralMode == quantiloom::SpectralMode::Single) {
