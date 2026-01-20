@@ -349,6 +349,78 @@ Please restart the application for the changes to take effect.</source>
         <translation>The language setting has been changed.
 Please restart the application for the changes to take effect.</translation>
     </message>
+    <message>
+        <source>Take &amp;Screenshot</source>
+        <translation>Take &amp;Screenshot</translation>
+    </message>
+    <message>
+        <source>&amp;Properties...</source>
+        <translation>&amp;Properties...</translation>
+    </message>
+    <message>
+        <source>Screenshot Failed</source>
+        <translation>Screenshot Failed</translation>
+    </message>
+    <message>
+        <source>Failed to capture screenshot. Make sure a scene is loaded.</source>
+        <translation>Failed to capture screenshot. Make sure a scene is loaded.</translation>
+    </message>
+    <message>
+        <source>Screenshot failed</source>
+        <translation>Screenshot failed</translation>
+    </message>
+    <message>
+        <source>Failed to create screenshot directory:
+%1</source>
+        <translation>Failed to create screenshot directory:
+%1</translation>
+    </message>
+    <message>
+        <source>Failed to save EXR file:
+%1</source>
+        <translation>Failed to save EXR file:
+%1</translation>
+    </message>
+    <message>
+        <source>Screenshot failed (EXR)</source>
+        <translation>Screenshot failed (EXR)</translation>
+    </message>
+    <message>
+        <source>Screenshot Warning</source>
+        <translation>Screenshot Warning</translation>
+    </message>
+    <message>
+        <source>EXR saved successfully, but PNG save failed:
+%1</source>
+        <translation>EXR saved successfully, but PNG save failed:
+%1</translation>
+    </message>
+    <message>
+        <source>Screenshot saved (EXR only): %1</source>
+        <translation>Screenshot saved (EXR only): %1</translation>
+    </message>
+    <message>
+        <source>Screenshot saved: %1.{exr,png}</source>
+        <translation>Screenshot saved: %1.{exr,png}</translation>
+    </message>
+    <message>
+        <source>Screenshot Saved</source>
+        <translation>Screenshot Saved</translation>
+    </message>
+    <message>
+        <source>Screenshot saved successfully:
+
+EXR: %1
+PNG: %2</source>
+        <translation>Screenshot saved successfully:
+
+EXR: %1
+PNG: %2</translation>
+    </message>
+    <message>
+        <source>Settings saved</source>
+        <translation>Settings saved</translation>
+    </message>
 </context>
 <context>
     <name>QuantiloomVulkanRenderer</name>
@@ -750,6 +822,43 @@ This may take a few minutes.</translation>
     <message>
         <source>Redo %1</source>
         <translation>Redo %1</translation>
+    </message>
+</context>
+<context>
+    <name>SettingsDialog</name>
+    <message>
+        <source>Settings</source>
+        <translation>Settings</translation>
+    </message>
+    <message>
+        <source>Screenshot Settings</source>
+        <translation>Screenshot Settings</translation>
+    </message>
+    <message>
+        <source>Save Location:</source>
+        <translation>Save Location:</translation>
+    </message>
+    <message>
+        <source>Browse...</source>
+        <translation>Browse...</translation>
+    </message>
+    <message>
+        <source>Screenshots are saved as:
+• EXR format (HDR, full precision)
+• PNG format (8-bit, sRGB preview)
+Filename: YYYY-MM-DD_HH-MM-SS-mmm</source>
+        <translation>Screenshots are saved as:
+• EXR format (HDR, full precision)
+• PNG format (8-bit, sRGB preview)
+Filename: YYYY-MM-DD_HH-MM-SS-mmm</translation>
+    </message>
+    <message>
+        <source>Restore Defaults</source>
+        <translation>Restore Defaults</translation>
+    </message>
+    <message>
+        <source>Select Screenshot Save Location</source>
+        <translation>Select Screenshot Save Location</translation>
     </message>
 </context>
 <context>

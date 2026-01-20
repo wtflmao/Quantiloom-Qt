@@ -18,6 +18,7 @@
 #include "editing/TransformGizmo.hpp"
 #include "editing/UndoStack.hpp"
 #include "editing/Commands.hpp"
+#include "dialogs/SettingsDialog.hpp"
 
 #include <QApplication>
 #include <QGuiApplication>
@@ -38,8 +39,13 @@
 #include <QFileInfo>
 #include <QSettings>
 #include <QDebug>
+#include <QDateTime>
+#include <QDir>
+#include <QStandardPaths>
 
 #include <core/Types.hpp>
+#include <core/Image.hpp>
+#include <io/ImageIO.hpp>
 #include <scene/Material.hpp>
 #include <scene/Scene.hpp>
 #include <renderer/LightingParams.hpp>
@@ -131,6 +137,12 @@ void MainWindow::setupMenus() {
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(tr("&Reset Camera"), this, &MainWindow::onResetCamera);
     viewMenu->addSeparator();
+
+    // Add screenshot action with Ctrl+Shift+S shortcut
+    QAction* screenshotAction = viewMenu->addAction(tr("Take &Screenshot"), this, &MainWindow::onTakeScreenshot);
+    screenshotAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S));
+
+    viewMenu->addSeparator();
     viewMenu->addAction(tr("&Parameter Panel"))->setCheckable(true);
 
     // Render menu
@@ -175,6 +187,10 @@ void MainWindow::setupMenus() {
     connect(languageGroup, &QActionGroup::triggered, this, [this](QAction* action) {
         onLanguageChanged(action->data().toString());
     });
+
+    // Add separator and Settings action
+    settingsMenu->addSeparator();
+    settingsMenu->addAction(tr("&Properties..."), this, &MainWindow::onSettings);
 
     // Help menu
     QMenu* helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -456,6 +472,75 @@ void MainWindow::onResetCamera() {
     m_statusLabel->setText(tr("Camera reset"));
 }
 
+void MainWindow::onTakeScreenshot() {
+    // Capture from Vulkan renderer
+    auto image = m_vulkanWindow->captureScreenshot();
+    if (!image) {
+        QMessageBox::warning(this, tr("Screenshot Failed"),
+            tr("Failed to capture screenshot. Make sure a scene is loaded."));
+        m_statusLabel->setText(tr("Screenshot failed"));
+        return;
+    }
+
+    // Get screenshot save path from settings
+    QSettings settings;
+    QString screenshotDir = settings.value("screenshot_path", "").toString();
+
+    // Use default if not set
+    if (screenshotDir.isEmpty()) {
+#ifdef Q_OS_WIN
+        QString tempDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+        screenshotDir = QDir(tempDir).filePath("Quantiloom/screenshots");
+#else
+        screenshotDir = "/tmp/Quantiloom/screenshots";
+#endif
+    }
+
+    // Create directory if doesn't exist
+    QDir dir(screenshotDir);
+    if (!dir.exists()) {
+        if (!dir.mkpath(".")) {
+            QMessageBox::warning(this, tr("Screenshot Failed"),
+                tr("Failed to create screenshot directory:\n%1").arg(screenshotDir));
+            m_statusLabel->setText(tr("Screenshot failed"));
+            return;
+        }
+    }
+
+    // Generate filename with millisecond timestamp
+    QDateTime now = QDateTime::currentDateTime();
+    QString timestamp = now.toString("yyyy-MM-dd_HH-mm-ss-zzz");
+    QString baseFilename = dir.filePath(timestamp);
+    QString exrPath = baseFilename + ".exr";
+    QString pngPath = baseFilename + ".png";
+
+    // Save EXR (HDR)
+    bool exrSuccess = quantiloom::ImageIO::WriteEXR(exrPath.toStdString(), *image);
+    if (!exrSuccess) {
+        QMessageBox::warning(this, tr("Screenshot Failed"),
+            tr("Failed to save EXR file:\n%1").arg(exrPath));
+        m_statusLabel->setText(tr("Screenshot failed (EXR)"));
+        return;
+    }
+
+    // Save PNG (LDR preview)
+    bool pngSuccess = quantiloom::ImageIO::WritePNG(pngPath.toStdString(), *image);
+    if (!pngSuccess) {
+        QMessageBox::warning(this, tr("Screenshot Warning"),
+            tr("EXR saved successfully, but PNG save failed:\n%1").arg(pngPath));
+        m_statusLabel->setText(tr("Screenshot saved (EXR only): %1").arg(exrPath));
+        return;
+    }
+
+    // Success
+    m_statusLabel->setText(tr("Screenshot saved: %1.{exr,png}").arg(baseFilename));
+
+    // Optional: Show success message
+    QMessageBox::information(this, tr("Screenshot Saved"),
+        tr("Screenshot saved successfully:\n\nEXR: %1\nPNG: %2")
+        .arg(exrPath).arg(pngPath));
+}
+
 void MainWindow::onAbout() {
     QMessageBox::about(
         this,
@@ -488,6 +573,25 @@ void MainWindow::onLanguageChanged(const QString& locale) {
             tr("The language setting has been changed.\n"
                "Please restart the application for the changes to take effect.")
         );
+    }
+}
+
+void MainWindow::onSettings() {
+    SettingsDialog dialog(this);
+
+    // Load current settings
+    QSettings settings;
+    QString currentPath = settings.value("screenshot_path", "").toString();
+    dialog.setScreenshotPath(currentPath);
+
+    // Show dialog
+    if (dialog.exec() == QDialog::Accepted) {
+        QString newPath = dialog.getScreenshotPath();
+
+        // Save to QSettings
+        settings.setValue("screenshot_path", newPath);
+
+        m_statusLabel->setText(tr("Settings saved"));
     }
 }
 

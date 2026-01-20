@@ -12,6 +12,7 @@
 #include <renderer/LightingParams.hpp>
 #include <scene/Material.hpp>
 #include <scene/Scene.hpp>
+#include <core/Image.hpp>
 
 #include <QVulkanFunctions>
 #include <QFile>
@@ -632,4 +633,18 @@ QString QuantiloomVulkanRenderer::formatDebugValue(const glm::vec4& v) const {
             return QString("RGB(%1, %2, %3)")
                 .arg(v.r, 0, 'f', 3).arg(v.g, 0, 'f', 3).arg(v.b, 0, 'f', 3);
     }
+}
+
+std::unique_ptr<quantiloom::Image> QuantiloomVulkanRenderer::captureScreenshot() {
+    if (!m_renderContext) {
+        return nullptr;
+    }
+
+    auto result = m_renderContext->CaptureScreenshot();
+    if (!result.has_value()) {
+        qWarning() << "Screenshot capture failed:" << QString::fromStdString(result.error());
+        return nullptr;
+    }
+
+    return std::make_unique<quantiloom::Image>(std::move(result.value()));
 }

@@ -128,6 +128,9 @@ set(GUI_SOURCES
     src/editing/Commands.hpp
     src/editing/TransformGizmo.cpp
     src/editing/TransformGizmo.hpp
+    # Dialogs
+    src/dialogs/SettingsDialog.cpp
+    src/dialogs/SettingsDialog.hpp
 )
 
 # ============================================================================

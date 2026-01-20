@@ -80,12 +80,14 @@ private slots:
 
     // View menu actions
     void onResetCamera();
+    void onTakeScreenshot();
 
     // Help menu actions
     void onAbout();
 
     // Settings menu actions
     void onLanguageChanged(const QString& locale);
+    void onSettings();
 
     // Status updates
     void onFrameRendered(float frameTimeMs, uint32_t sampleCount);

@@ -19,6 +19,7 @@ namespace quantiloom {
 class Scene;
 struct Material;
 struct LightingParams;
+struct Image;
 }
 
 class QuantiloomVulkanRenderer;
@@ -128,6 +129,11 @@ public:
      * @brief Get current debug visualization mode
      */
     quantiloom::DebugVisualizationMode getDebugMode() const;
+
+    /**
+     * @brief Capture current frame as Image
+     */
+    std::unique_ptr<quantiloom::Image> captureScreenshot();
 
     // ========================================================================
     // Scene Editing

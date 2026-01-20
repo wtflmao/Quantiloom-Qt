@@ -24,6 +24,7 @@ namespace quantiloom {
 class ExternalRenderContext;
 class Scene;
 struct Material;
+struct Image;
 }
 
 /**
@@ -102,6 +103,12 @@ public:
      * @brief Get current debug visualization mode
      */
     quantiloom::DebugVisualizationMode getDebugMode() const { return m_debugMode; }
+
+    /**
+     * @brief Capture current frame as Image
+     * @return Image or nullptr if failed
+     */
+    std::unique_ptr<quantiloom::Image> captureScreenshot();
 
 private:
     void updateCamera(float deltaTime);

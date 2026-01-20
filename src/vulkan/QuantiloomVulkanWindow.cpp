@@ -12,6 +12,8 @@
 #include "../editing/UndoStack.hpp"
 #include "../editing/Commands.hpp"
 
+#include <core/Image.hpp>
+
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QWheelEvent>
@@ -203,6 +205,10 @@ QString QuantiloomVulkanWindow::formatDebugValue(const glm::vec4& pixel) const {
 
 quantiloom::DebugVisualizationMode QuantiloomVulkanWindow::getDebugMode() const {
     return m_renderer ? m_renderer->getDebugMode() : quantiloom::DebugVisualizationMode::None;
+}
+
+std::unique_ptr<quantiloom::Image> QuantiloomVulkanWindow::captureScreenshot() {
+    return m_renderer ? m_renderer->captureScreenshot() : nullptr;
 }
 
 // ============================================================================

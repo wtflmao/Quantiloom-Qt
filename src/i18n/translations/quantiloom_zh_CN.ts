@@ -353,6 +353,78 @@ Please restart the application for the changes to take effect.</source>
         <translation>语言设置已更改。
 请重新启动应用程序以使更改生效。</translation>
     </message>
+    <message>
+        <source>Take &amp;Screenshot</source>
+        <translation>截图(&amp;S)</translation>
+    </message>
+    <message>
+        <source>&amp;Properties...</source>
+        <translation>属性(&amp;P)...</translation>
+    </message>
+    <message>
+        <source>Screenshot Failed</source>
+        <translation>截图失败</translation>
+    </message>
+    <message>
+        <source>Failed to capture screenshot. Make sure a scene is loaded.</source>
+        <translation>截图失败。请确保已加载场景。</translation>
+    </message>
+    <message>
+        <source>Screenshot failed</source>
+        <translation>截图失败</translation>
+    </message>
+    <message>
+        <source>Failed to create screenshot directory:
+%1</source>
+        <translation>无法创建截图目录：
+%1</translation>
+    </message>
+    <message>
+        <source>Failed to save EXR file:
+%1</source>
+        <translation>无法保存 EXR 文件：
+%1</translation>
+    </message>
+    <message>
+        <source>Screenshot failed (EXR)</source>
+        <translation>截图失败 (EXR)</translation>
+    </message>
+    <message>
+        <source>Screenshot Warning</source>
+        <translation>截图警告</translation>
+    </message>
+    <message>
+        <source>EXR saved successfully, but PNG save failed:
+%1</source>
+        <translation>EXR 保存成功，但 PNG 保存失败：
+%1</translation>
+    </message>
+    <message>
+        <source>Screenshot saved (EXR only): %1</source>
+        <translation>截图已保存（仅 EXR）：%1</translation>
+    </message>
+    <message>
+        <source>Screenshot saved: %1.{exr,png}</source>
+        <translation>截图已保存：%1.{exr,png}</translation>
+    </message>
+    <message>
+        <source>Screenshot Saved</source>
+        <translation>截图已保存</translation>
+    </message>
+    <message>
+        <source>Screenshot saved successfully:
+
+EXR: %1
+PNG: %2</source>
+        <translation>截图保存成功：
+
+EXR：%1
+PNG：%2</translation>
+    </message>
+    <message>
+        <source>Settings saved</source>
+        <translation>设置已保存</translation>
+    </message>
 </context>
 <context>
     <name>QuantiloomVulkanRenderer</name>
@@ -754,6 +826,43 @@ This may take a few minutes.</source>
     <message>
         <source>Redo %1</source>
         <translation>重做 %1</translation>
+    </message>
+</context>
+<context>
+    <name>SettingsDialog</name>
+    <message>
+        <source>Settings</source>
+        <translation>设置</translation>
+    </message>
+    <message>
+        <source>Screenshot Settings</source>
+        <translation>截图设置</translation>
+    </message>
+    <message>
+        <source>Save Location:</source>
+        <translation>保存位置：</translation>
+    </message>
+    <message>
+        <source>Browse...</source>
+        <translation>浏览...</translation>
+    </message>
+    <message>
+        <source>Screenshots are saved as:
+• EXR format (HDR, full precision)
+• PNG format (8-bit, sRGB preview)
+Filename: YYYY-MM-DD_HH-MM-SS-mmm</source>
+        <translation>截图保存格式：
+• EXR 格式（HDR，全精度）
+• PNG 格式（8位，sRGB 预览）
+文件名：YYYY-MM-DD_HH-MM-SS-mmm</translation>
+    </message>
+    <message>
+        <source>Restore Defaults</source>
+        <translation>恢复默认</translation>
+    </message>
+    <message>
+        <source>Select Screenshot Save Location</source>
+        <translation>选择截图保存位置</translation>
     </message>
 </context>
 <context>
