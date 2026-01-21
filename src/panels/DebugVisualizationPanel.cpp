@@ -133,6 +133,26 @@ void DebugVisualizationPanel::setupUi() {
     m_modeCombo->addItem(tr("IR Reflection"),
                          static_cast<int>(quantiloom::DebugVisualizationMode::IRReflection));
 
+    // Separator and Geometry Diagnostics group (for debugging mesh/index corruption)
+    m_modeCombo->insertSeparator(m_modeCombo->count());
+    m_modeCombo->addItem(tr("-- Geometry Diagnostics --"), -1);
+    m_modeCombo->addItem(tr("Vertex Positions (Hash)"),
+                         static_cast<int>(quantiloom::DebugVisualizationMode::VertexPositions));
+    m_modeCombo->addItem(tr("Index Values"),
+                         static_cast<int>(quantiloom::DebugVisualizationMode::IndexValues));
+    m_modeCombo->addItem(tr("Instance ID"),
+                         static_cast<int>(quantiloom::DebugVisualizationMode::InstanceID));
+    m_modeCombo->addItem(tr("Primitive ID"),
+                         static_cast<int>(quantiloom::DebugVisualizationMode::PrimitiveID));
+    m_modeCombo->addItem(tr("Index Buffer Position"),
+                         static_cast<int>(quantiloom::DebugVisualizationMode::IndexBufferPos));
+    m_modeCombo->addItem(tr("V0 Position"),
+                         static_cast<int>(quantiloom::DebugVisualizationMode::V0Position));
+    m_modeCombo->addItem(tr("Raw idx0"),
+                         static_cast<int>(quantiloom::DebugVisualizationMode::RawIdx0));
+    m_modeCombo->addItem(tr("V0 Raw (clamped)"),
+                         static_cast<int>(quantiloom::DebugVisualizationMode::V0Raw));
+
     connect(m_modeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &DebugVisualizationPanel::onModeChanged);
     modeLayout->addWidget(m_modeCombo);
@@ -380,6 +400,46 @@ void DebugVisualizationPanel::updateDescription(quantiloom::DebugVisualizationMo
         case quantiloom::DebugVisualizationMode::IRReflection:
             category = tr("Infrared");
             desc = tr("IR reflection of ambient thermal radiation.");
+            break;
+
+        // Geometry Diagnostics (70-79)
+        case quantiloom::DebugVisualizationMode::VertexPositions:
+            category = tr("Diagnostics");
+            desc = tr("Hash of 3 vertex positions. Same face should show similar colors. "
+                      "Different colors on same face = index corruption.");
+            break;
+        case quantiloom::DebugVisualizationMode::IndexValues:
+            category = tr("Diagnostics");
+            desc = tr("Triangle vertex indices as RGB (normalized by 32). For cube: idx0-23.");
+            break;
+        case quantiloom::DebugVisualizationMode::InstanceID:
+            category = tr("Diagnostics");
+            desc = tr("TLAS instance index. Verifies instance-to-geometry mapping.");
+            break;
+        case quantiloom::DebugVisualizationMode::PrimitiveID:
+            category = tr("Diagnostics");
+            desc = tr("PrimitiveIndex() value. R=id/12 (gradient), G=alternating, B=even/odd. "
+                      "For cube: should see 12 distinct triangles with smooth R gradient.");
+            break;
+        case quantiloom::DebugVisualizationMode::IndexBufferPos:
+            category = tr("Diagnostics");
+            desc = tr("Index buffer read position. R=basePos/36, G=offset/36, B=primID/12. "
+                      "For single BLAS: G should be 0.");
+            break;
+        case quantiloom::DebugVisualizationMode::V0Position:
+            category = tr("Diagnostics");
+            desc = tr("First vertex (v0) position mapped to 0-1 using frac(). "
+                      "For ±1 cube: shows 0 for both +1 and -1. Shows 0.5 for 0.");
+            break;
+        case quantiloom::DebugVisualizationMode::RawIdx0:
+            category = tr("Diagnostics");
+            desc = tr("Raw idx0 value. R=idx0/32, G=readAddr/32, B=offset/32. "
+                      "For cube: R should be 0-0.72 (idx 0-23). G=R if offset=0.");
+            break;
+        case quantiloom::DebugVisualizationMode::V0Raw:
+            category = tr("Diagnostics");
+            desc = tr("v0 position clamped (not frac). -1→0, 0→0.5, +1→1. "
+                      "For cube: should see 0 or 1 only (no 0.5).");
             break;
 
         default:
