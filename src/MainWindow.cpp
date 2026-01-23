@@ -679,9 +679,10 @@ void MainWindow::onSpectralModeChanged(quantiloom::SpectralMode mode) {
         case quantiloom::SpectralMode::RGB: modeName = "RGB"; break;
         case quantiloom::SpectralMode::VIS_Fused: modeName = "VIS Fused"; break;
         case quantiloom::SpectralMode::Single: modeName = "Single"; break;
+        case quantiloom::SpectralMode::NIR_Fused: modeName = "NIR"; break;
+        case quantiloom::SpectralMode::SWIR_Fused: modeName = "SWIR"; break;
         case quantiloom::SpectralMode::MWIR_Fused: modeName = "MWIR"; break;
         case quantiloom::SpectralMode::LWIR_Fused: modeName = "LWIR"; break;
-        case quantiloom::SpectralMode::NIR_Fused: modeName = "NIR"; break;
         default: modeName = "Unknown"; break;
     }
     m_statusLabel->setText(tr("Spectral mode: %1").arg(modeName));

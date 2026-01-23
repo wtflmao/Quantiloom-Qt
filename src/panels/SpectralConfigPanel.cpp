@@ -38,12 +38,14 @@ void SpectralConfigPanel::setupUi() {
                          static_cast<int>(quantiloom::SpectralMode::VIS_Fused));
     m_modeCombo->addItem(tr("Single Wavelength"),
                          static_cast<int>(quantiloom::SpectralMode::Single));
+    m_modeCombo->addItem(tr("NIR (780-1400 nm)"),
+                         static_cast<int>(quantiloom::SpectralMode::NIR_Fused));
+    m_modeCombo->addItem(tr("SWIR (1000-2500 nm)"),
+                         static_cast<int>(quantiloom::SpectralMode::SWIR_Fused));
     m_modeCombo->addItem(tr("MWIR (3-5 μm)"),
                          static_cast<int>(quantiloom::SpectralMode::MWIR_Fused));
     m_modeCombo->addItem(tr("LWIR (8-12 μm)"),
                          static_cast<int>(quantiloom::SpectralMode::LWIR_Fused));
-    m_modeCombo->addItem(tr("NIR (780-1400 nm)"),
-                         static_cast<int>(quantiloom::SpectralMode::NIR_Fused));
     connect(m_modeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &SpectralConfigPanel::onModeChanged);
     modeLayout->addWidget(m_modeCombo);
@@ -172,6 +174,7 @@ void SpectralConfigPanel::setSpectralMode(quantiloom::SpectralMode mode) {
         case quantiloom::SpectralMode::RGB:
         case quantiloom::SpectralMode::VIS_Fused:
         case quantiloom::SpectralMode::NIR_Fused:
+        case quantiloom::SpectralMode::SWIR_Fused:
             m_settingsStack->setCurrentIndex(0);
             break;
         case quantiloom::SpectralMode::Single:
@@ -234,6 +237,7 @@ void SpectralConfigPanel::onModeChanged(int index) {
         case quantiloom::SpectralMode::RGB:
         case quantiloom::SpectralMode::VIS_Fused:
         case quantiloom::SpectralMode::NIR_Fused:
+        case quantiloom::SpectralMode::SWIR_Fused:
             m_settingsStack->setCurrentIndex(0);
             break;
         case quantiloom::SpectralMode::Single:
@@ -340,6 +344,10 @@ void SpectralConfigPanel::updateModeDescription(quantiloom::SpectralMode mode) {
         case quantiloom::SpectralMode::LWIR_Fused:
             desc = tr("Long-Wave Infrared (8-12 μm). Thermal imaging for room-temperature "
                       "objects, people, and buildings.");
+            break;
+        case quantiloom::SpectralMode::SWIR_Fused:
+            desc = tr("Short-Wave Infrared (1000-2500 nm). Moisture detection, "
+                      "material identification, and imaging through haze.");
             break;
         case quantiloom::SpectralMode::NIR_Fused:
             desc = tr("Near-Infrared (780-1400 nm). Reflected solar radiation, "
