@@ -12,6 +12,7 @@
 #include <cctype>
 
 #include <postprocess/PostprocessConfig.hpp>
+#include <renderer/LightingParams.hpp>
 
 ConfigManager::ConfigManager(QObject* parent)
     : QObject(parent)
@@ -117,6 +118,18 @@ void ConfigManager::extractSceneConfig(const quantiloom::Config& config, SceneCo
     out.lighting.transmittance = config.GetFloat("lighting.transmittance", 0.9f);
     out.lighting.worldUnitsToMeters = out.worldUnitsToMeters;
 
+    // [quality] VIS_Fused chromaticity correction (SDK 0.0.3)
+    out.lighting.chromaR_correction = config.GetFloat(
+        "quality.chroma_r_correction",
+        quantiloom::LightingDefaults::CHROMA_R_CORRECTION);
+    out.lighting.chromaB_correction = config.GetFloat(
+        "quality.chroma_b_correction",
+        quantiloom::LightingDefaults::CHROMA_B_CORRECTION);
+
+    // [renderer] Shadow ray control (SDK 0.0.3)
+    bool enableShadowRays = config.Get<bool>("renderer.enable_shadow_rays", false);
+    out.lighting.enableShadowRays = enableShadowRays ? 1u : 0u;
+
     // [atmospheric]
     out.atmosphericPreset = QString::fromStdString(
         config.GetString("atmospheric.preset", "disabled"));
@@ -187,6 +200,10 @@ bool ConfigManager::exportConfig(const QString& filePath, const SceneConfig& con
     if (!config.environmentMap.isEmpty()) {
         out << "environment_map = \"" << config.environmentMap << "\"\n";
     }
+    // SDK 0.0.3: shadow ray control
+    if (config.lighting.enableShadowRays) {
+        out << "enable_shadow_rays = true\n";
+    }
     out << "\n";
 
     // [spectral]
@@ -242,6 +259,15 @@ bool ConfigManager::exportConfig(const QString& filePath, const SceneConfig& con
                               << config.lighting.skyRadiance_rgb.b << "]\n";
     out << "atmosphere_temperature_k = " << config.lighting.atmosphereTemperature_K << "\n";
     out << "\n";
+
+    // [quality] - SDK 0.0.3: VIS_Fused chromaticity correction (only if non-default)
+    if (config.lighting.chromaR_correction != quantiloom::LightingDefaults::CHROMA_R_CORRECTION ||
+        config.lighting.chromaB_correction != quantiloom::LightingDefaults::CHROMA_B_CORRECTION) {
+        out << "[quality]\n";
+        out << "chroma_r_correction = " << config.lighting.chromaR_correction << "\n";
+        out << "chroma_b_correction = " << config.lighting.chromaB_correction << "\n";
+        out << "\n";
+    }
 
     file.close();
     return true;

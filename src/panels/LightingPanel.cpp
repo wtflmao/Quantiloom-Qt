@@ -142,6 +142,11 @@ void LightingPanel::setLightingParams(const quantiloom::LightingParams& params) 
     m_transmittance = params.transmittance;
     m_atmosphereTemp = params.atmosphereTemperature_K;
 
+    // SDK 0.0.3 new fields
+    m_chromaR_correction = params.chromaR_correction;
+    m_chromaB_correction = params.chromaB_correction;
+    m_enableShadowRays = (params.enableShadowRays != 0);
+
     // Update UI (block signals to avoid feedback loop)
     m_azimuthSlider->blockSignals(true);
     m_azimuthSlider->setValue(static_cast<int>(m_sunAzimuth));
@@ -248,6 +253,11 @@ void LightingPanel::emitChanges() {
     params.transmittance = m_transmittance;
     params.worldUnitsToMeters = 1.0f;
     params.atmosphereTemperature_K = m_atmosphereTemp;
+
+    // SDK 0.0.3 new fields
+    params.chromaR_correction = m_chromaR_correction;
+    params.chromaB_correction = m_chromaB_correction;
+    params.enableShadowRays = m_enableShadowRays ? 1u : 0u;
 
     emit lightingChanged(params);
 }
