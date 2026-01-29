@@ -147,6 +147,9 @@ void QuantiloomVulkanRenderer::releaseResources() {
 }
 
 void QuantiloomVulkanRenderer::startNextFrame() {
+    static uint64_t frameCounter = 0;
+    frameCounter++;
+
     auto now = std::chrono::high_resolution_clock::now();
     float deltaTime = std::chrono::duration<float>(now - m_lastFrameTime).count();
     m_lastFrameTime = now;
@@ -159,6 +162,11 @@ void QuantiloomVulkanRenderer::startNextFrame() {
         m_window->frameReady();
         m_window->requestUpdate();
         return;
+    }
+
+    // Log every 100 frames to track progress
+    if (frameCounter % 100 == 0) {
+        qDebug() << "Frame" << frameCounter << "- samples:" << m_sampleCount;
     }
 
     // Get current command buffer and swapchain image

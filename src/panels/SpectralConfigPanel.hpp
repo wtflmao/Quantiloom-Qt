@@ -68,4 +68,7 @@ private:
     QDoubleSpinBox* m_lambdaMaxSpin = nullptr;
     QDoubleSpinBox* m_deltaSpin = nullptr;
     QLabel* m_bandCountLabel = nullptr;
+
+    // Quantitative warning label
+    QLabel* m_quantitativeWarning = nullptr;
 };

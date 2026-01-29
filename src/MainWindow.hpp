@@ -182,4 +182,8 @@ private:
         glm::mat4 originalTransform;
     };
     std::vector<TransformState> m_transformStartStates;
+
+    // Pending material configs (applied after scene load)
+    QVector<struct MaterialConfig> m_pendingMaterialConfigs;
+    void applyPendingMaterialConfigs();
 };

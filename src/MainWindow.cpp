@@ -314,6 +314,7 @@ void MainWindow::setupConnections() {
             this, [this](bool success, const QString& message) {
                 if (success) {
                     updatePanelsFromScene();
+                    applyPendingMaterialConfigs();
                     m_statusLabel->setText(message);
                 } else {
                     QMessageBox::warning(this, tr("Scene Load Failed"), message);
@@ -582,7 +583,7 @@ void MainWindow::onAbout() {
         this,
         tr("About Quantiloom"),
         tr("<h3>Quantiloom</h3>"
-           "<p>Version 0.0.1</p>"
+           "<p>Version 0.0.3</p>"
            "<p>A spectral renderer with hardware ray tracing support.</p>"
            "<p>Features:</p>"
            "<ul>"
@@ -896,6 +897,9 @@ void MainWindow::applyConfig(const SceneConfig& config) {
     glm::vec3 camLookAt(config.cameraLookAt[0], config.cameraLookAt[1], config.cameraLookAt[2]);
     glm::vec3 camUp(config.cameraUp[0], config.cameraUp[1], config.cameraUp[2]);
     m_vulkanWindow->setCamera(camPos, camLookAt, camUp, config.cameraFovY);
+
+    // Store material configs for application after scene load
+    m_pendingMaterialConfigs = config.materialConfigs;
 }
 
 void MainWindow::collectCurrentConfig(SceneConfig& config) {
@@ -915,6 +919,70 @@ void MainWindow::collectCurrentConfig(SceneConfig& config) {
     // Lighting is populated via the panel's emit signals
     // For now, use default or last known values
     config.lighting = quantiloom::CreateDefaultLightingParams();
+}
+
+void MainWindow::applyPendingMaterialConfigs() {
+    if (m_pendingMaterialConfigs.isEmpty()) {
+        qDebug() << "applyPendingMaterialConfigs: no pending configs";
+        return;
+    }
+
+    qDebug() << "applyPendingMaterialConfigs: applying" << m_pendingMaterialConfigs.size() << "configs";
+
+    const auto* scene = m_vulkanWindow->getScene();
+    if (!scene) {
+        return;
+    }
+
+    qDebug() << "Applying" << m_pendingMaterialConfigs.size() << "material IR configs";
+
+    for (const auto& matConfig : m_pendingMaterialConfigs) {
+        // Find material by name
+        for (size_t i = 0; i < scene->materials.size(); ++i) {
+            const auto& material = scene->materials[i];
+            if (QString::fromStdString(material.name) == matConfig.name) {
+                // Create modified material with IR properties
+                quantiloom::Material modified = material;
+
+                // Set IR curves with constant values across IR bands
+                const float mwir_nm = 4000.0f;
+                const float lwir_nm = 10000.0f;
+
+                if (matConfig.irEmissivity > 0.0f) {
+                    modified.irEmissivityCurve.clear();
+                    modified.irEmissivityCurve.push_back({mwir_nm, matConfig.irEmissivity});
+                    modified.irEmissivityCurve.push_back({lwir_nm, matConfig.irEmissivity});
+                }
+
+                if (matConfig.irTransmittance > 0.0f) {
+                    modified.irTransmittanceCurve.clear();
+                    modified.irTransmittanceCurve.push_back({mwir_nm, matConfig.irTransmittance});
+                    modified.irTransmittanceCurve.push_back({lwir_nm, matConfig.irTransmittance});
+                }
+
+                // Compute and set reflectance from energy conservation
+                float reflectance = 1.0f - matConfig.irEmissivity - matConfig.irTransmittance;
+                if (reflectance > 0.0f) {
+                    modified.irReflectanceCurve.clear();
+                    modified.irReflectanceCurve.push_back({mwir_nm, reflectance});
+                    modified.irReflectanceCurve.push_back({lwir_nm, reflectance});
+                }
+
+                modified.irTemperature_K = matConfig.irTemperature_K;
+
+                // Apply the modified material
+                m_vulkanWindow->updateMaterial(static_cast<int>(i), modified);
+
+                qDebug() << "  Applied IR config to material" << matConfig.name
+                         << "emissivity=" << matConfig.irEmissivity
+                         << "temp=" << matConfig.irTemperature_K << "K";
+                break;
+            }
+        }
+    }
+
+    // Clear pending configs after applying
+    m_pendingMaterialConfigs.clear();
 }
 
 // ============================================================================

@@ -140,6 +140,35 @@ void ConfigManager::extractSceneConfig(const quantiloom::Config& config, SceneCo
     if (out.sensorEnabled) {
         out.sensorParams = quantiloom::PostprocessConfig::ParseSensorParams(config);
     }
+
+    // [[materials]] - parse material IR overrides
+    // TOML format:
+    // [[materials]]
+    // name = "material_name"
+    // ir_emissivity = 0.8
+    // ir_transmittance = 0.0
+    // ir_temperature_k = 350.0
+    out.materialConfigs.clear();
+    auto materialTables = config.GetTableArray("materials");
+    for (const auto& matTable : materialTables) {
+        std::string name = matTable.GetString("name", "");
+        if (name.empty()) {
+            continue;
+        }
+
+        MaterialConfig matConfig;
+        matConfig.name = QString::fromStdString(name);
+        matConfig.irEmissivity = matTable.GetFloat("ir_emissivity", 0.0f);
+        matConfig.irTransmittance = matTable.GetFloat("ir_transmittance", 0.0f);
+        matConfig.irTemperature_K = matTable.GetFloat("ir_temperature_k", 0.0f);
+
+        out.materialConfigs.append(matConfig);
+
+        qDebug() << "Loaded material config:" << matConfig.name
+                 << "emissivity=" << matConfig.irEmissivity
+                 << "transmittance=" << matConfig.irTransmittance
+                 << "temperature=" << matConfig.irTemperature_K << "K";
+    }
 }
 
 quantiloom::SpectralMode ConfigManager::parseSpectralMode(const std::string& modeStr) {
@@ -267,6 +296,25 @@ bool ConfigManager::exportConfig(const QString& filePath, const SceneConfig& con
         out << "chroma_r_correction = " << config.lighting.chromaR_correction << "\n";
         out << "chroma_b_correction = " << config.lighting.chromaB_correction << "\n";
         out << "\n";
+    }
+
+    // [[materials]] - export material IR configs
+    for (const auto& matConfig : config.materialConfigs) {
+        if (matConfig.irEmissivity > 0.0f || matConfig.irTransmittance > 0.0f ||
+            matConfig.irTemperature_K > 0.0f) {
+            out << "[[materials]]\n";
+            out << "name = \"" << matConfig.name << "\"\n";
+            if (matConfig.irEmissivity > 0.0f) {
+                out << "ir_emissivity = " << matConfig.irEmissivity << "\n";
+            }
+            if (matConfig.irTransmittance > 0.0f) {
+                out << "ir_transmittance = " << matConfig.irTransmittance << "\n";
+            }
+            if (matConfig.irTemperature_K > 0.0f) {
+                out << "ir_temperature_k = " << matConfig.irTemperature_K << "\n";
+            }
+            out << "\n";
+        }
     }
 
     file.close();

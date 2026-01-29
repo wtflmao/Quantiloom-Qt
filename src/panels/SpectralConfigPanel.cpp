@@ -147,6 +147,25 @@ void SpectralConfigPanel::setupUi() {
 
     mainLayout->addWidget(rangeGroup);
 
+    // Quantitative warning (hidden by default, shown for MWIR/LWIR/SWIR/NIR modes)
+    m_quantitativeWarning = new QLabel();
+    m_quantitativeWarning->setWordWrap(true);
+    m_quantitativeWarning->setText(
+        tr("Preview mode: Using RGB-averaged spectral albedo.\n"
+           "NOT suitable for quantitative analysis.\n"
+           "For accurate IR rendering, use measured spectral materials."));
+    m_quantitativeWarning->setStyleSheet(
+        "QLabel { "
+        "  color: #B8860B; "  // Dark golden rod
+        "  background-color: #FFF8DC; "  // Cornsilk
+        "  border: 1px solid #DAA520; "
+        "  border-radius: 4px; "
+        "  padding: 8px; "
+        "  font-size: 9pt; "
+        "}");
+    m_quantitativeWarning->setVisible(false);
+    mainLayout->addWidget(m_quantitativeWarning);
+
     mainLayout->addStretch();
 
     // Initialize
@@ -324,6 +343,8 @@ void SpectralConfigPanel::onRangeChanged() {
 
 void SpectralConfigPanel::updateModeDescription(quantiloom::SpectralMode mode) {
     QString desc;
+    bool showWarning = false;
+
     switch (mode) {
         case quantiloom::SpectralMode::RGB:
             desc = tr("Fast RGB rendering, no spectral integration. "
@@ -338,24 +359,33 @@ void SpectralConfigPanel::updateModeDescription(quantiloom::SpectralMode mode) {
                       "Useful for spectral analysis and wavelength-specific effects.");
             break;
         case quantiloom::SpectralMode::MWIR_Fused:
-            desc = tr("Mid-Wave Infrared (3-5 μm). Thermal imaging for hot objects, "
+            desc = tr("Mid-Wave Infrared (3-5 um). Thermal imaging for hot objects, "
                       "engine exhaust, and fire detection.");
+            showWarning = true;
             break;
         case quantiloom::SpectralMode::LWIR_Fused:
-            desc = tr("Long-Wave Infrared (8-12 μm). Thermal imaging for room-temperature "
+            desc = tr("Long-Wave Infrared (8-12 um). Thermal imaging for room-temperature "
                       "objects, people, and buildings.");
+            showWarning = true;
             break;
         case quantiloom::SpectralMode::SWIR_Fused:
             desc = tr("Short-Wave Infrared (1000-2500 nm). Moisture detection, "
                       "material identification, and imaging through haze.");
+            showWarning = true;
             break;
         case quantiloom::SpectralMode::NIR_Fused:
             desc = tr("Near-Infrared (780-1400 nm). Reflected solar radiation, "
                       "vegetation analysis, and night vision.");
+            showWarning = true;
             break;
         default:
             desc = tr("Unknown spectral mode.");
             break;
     }
     m_modeDescription->setText(desc);
+
+    // Show quantitative warning for IR modes
+    if (m_quantitativeWarning) {
+        m_quantitativeWarning->setVisible(showWarning);
+    }
 }

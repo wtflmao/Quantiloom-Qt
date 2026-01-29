@@ -14,6 +14,7 @@
 #include <QPushButton>
 #include <QColorDialog>
 #include <QFormLayout>
+#include <QCheckBox>
 
 #include <scene/Material.hpp>
 
@@ -102,6 +103,52 @@ void MaterialEditorPanel::setupUi() {
 
     mainLayout->addWidget(emissiveGroup);
 
+    // IR Properties group (for MWIR/LWIR modes)
+    m_irGroup = new QGroupBox(tr("IR Properties (Thermal)"));
+    auto* irLayout = new QFormLayout(m_irGroup);
+
+    // IR Emissivity
+    m_irEmissivitySpin = new QDoubleSpinBox();
+    m_irEmissivitySpin->setRange(0.0, 1.0);
+    m_irEmissivitySpin->setSingleStep(0.01);
+    m_irEmissivitySpin->setDecimals(3);
+    m_irEmissivitySpin->setValue(0.0);
+    m_irEmissivitySpin->setToolTip(tr("Fraction of blackbody radiation emitted (0=reflective, 1=perfect emitter)"));
+    connect(m_irEmissivitySpin, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, &MaterialEditorPanel::onIRPropertyChanged);
+    irLayout->addRow(tr("Emissivity:"), m_irEmissivitySpin);
+
+    // IR Transmittance
+    m_irTransmittanceSpin = new QDoubleSpinBox();
+    m_irTransmittanceSpin->setRange(0.0, 1.0);
+    m_irTransmittanceSpin->setSingleStep(0.01);
+    m_irTransmittanceSpin->setDecimals(3);
+    m_irTransmittanceSpin->setValue(0.0);
+    m_irTransmittanceSpin->setToolTip(tr("Fraction of radiation transmitted through material (0=opaque)"));
+    connect(m_irTransmittanceSpin, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, &MaterialEditorPanel::onIRPropertyChanged);
+    irLayout->addRow(tr("Transmittance:"), m_irTransmittanceSpin);
+
+    // IR Temperature
+    m_irTemperatureSpin = new QDoubleSpinBox();
+    m_irTemperatureSpin->setRange(0.0, 2000.0);
+    m_irTemperatureSpin->setSingleStep(10.0);
+    m_irTemperatureSpin->setDecimals(1);
+    m_irTemperatureSpin->setValue(0.0);
+    m_irTemperatureSpin->setSuffix(" K");
+    m_irTemperatureSpin->setToolTip(tr("Surface temperature in Kelvin (0 = use scene ambient, ~293K = room temp, ~310K = human)"));
+    connect(m_irTemperatureSpin, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, &MaterialEditorPanel::onIRPropertyChanged);
+    irLayout->addRow(tr("Temperature:"), m_irTemperatureSpin);
+
+    // Kirchhoff's law validation label
+    m_irKirchhoffLabel = new QLabel();
+    m_irKirchhoffLabel->setWordWrap(true);
+    m_irKirchhoffLabel->setStyleSheet("font-size: 9pt;");
+    irLayout->addRow(m_irKirchhoffLabel);
+
+    mainLayout->addWidget(m_irGroup);
+
     mainLayout->addStretch();
 
     // Disable by default
@@ -154,6 +201,25 @@ void MaterialEditorPanel::setMaterial(int index, const quantiloom::Material* mat
     m_emissiveR->blockSignals(false);
     m_emissiveG->blockSignals(false);
     m_emissiveB->blockSignals(false);
+
+    // IR Properties
+    // Get scalar emissivity/transmittance (use first curve point or 0.0 if empty)
+    m_irEmissivity = material->irEmissivityCurve.empty() ? 0.0f : material->irEmissivityCurve[0].second;
+    m_irTransmittance = material->irTransmittanceCurve.empty() ? 0.0f : material->irTransmittanceCurve[0].second;
+    m_irTemperature_K = material->irTemperature_K;
+
+    m_irEmissivitySpin->blockSignals(true);
+    m_irTransmittanceSpin->blockSignals(true);
+    m_irTemperatureSpin->blockSignals(true);
+    m_irEmissivitySpin->setValue(static_cast<double>(m_irEmissivity));
+    m_irTransmittanceSpin->setValue(static_cast<double>(m_irTransmittance));
+    m_irTemperatureSpin->setValue(static_cast<double>(m_irTemperature_K));
+    m_irEmissivitySpin->blockSignals(false);
+    m_irTransmittanceSpin->blockSignals(false);
+    m_irTemperatureSpin->blockSignals(false);
+
+    // Update Kirchhoff's law label (without triggering applyChanges)
+    updateKirchhoffLabel();
 }
 
 void MaterialEditorPanel::clear() {
@@ -202,6 +268,36 @@ void MaterialEditorPanel::onEmissiveChanged() {
     applyChanges();
 }
 
+void MaterialEditorPanel::onIRPropertyChanged() {
+    m_irEmissivity = static_cast<float>(m_irEmissivitySpin->value());
+    m_irTransmittance = static_cast<float>(m_irTransmittanceSpin->value());
+    m_irTemperature_K = static_cast<float>(m_irTemperatureSpin->value());
+
+    updateKirchhoffLabel();
+    applyChanges();
+}
+
+void MaterialEditorPanel::updateKirchhoffLabel() {
+    if (!m_irKirchhoffLabel) {
+        return;
+    }
+
+    // Validate Kirchhoff's law: emissivity + reflectance + transmittance <= 1
+    // Reflectance is computed as: rho = 1 - epsilon - tau
+    float reflectance = 1.0f - m_irEmissivity - m_irTransmittance;
+
+    if (m_irEmissivity + m_irTransmittance > 1.0f) {
+        m_irKirchhoffLabel->setText(tr("Warning: epsilon + tau > 1 (violates energy conservation)"));
+        m_irKirchhoffLabel->setStyleSheet("color: red; font-size: 9pt;");
+    } else if (m_irEmissivity > 0.0f || m_irTransmittance > 0.0f) {
+        m_irKirchhoffLabel->setText(tr("Reflectance (rho) = %1").arg(reflectance, 0, 'f', 3));
+        m_irKirchhoffLabel->setStyleSheet("color: gray; font-size: 9pt;");
+    } else {
+        m_irKirchhoffLabel->setText(tr("Set IR properties for thermal rendering"));
+        m_irKirchhoffLabel->setStyleSheet("color: gray; font-size: 9pt;");
+    }
+}
+
 void MaterialEditorPanel::applyChanges() {
     if (m_currentIndex < 0 || !m_currentMaterial) {
         return;
@@ -213,6 +309,37 @@ void MaterialEditorPanel::applyChanges() {
     modified.metallicFactor = m_metallic;
     modified.roughnessFactor = m_roughness;
     modified.emissiveFactor = m_emissive;
+
+    // IR properties - set as constant curves (single wavelength point)
+    // Using 10000 nm as representative LWIR wavelength
+    if (m_irEmissivity > 0.0f || m_irTransmittance > 0.0f || m_irTemperature_K > 0.0f) {
+        modified.irEmissivityCurve.clear();
+        modified.irTransmittanceCurve.clear();
+        modified.irReflectanceCurve.clear();
+
+        // Create constant curve with points at MWIR and LWIR bands
+        const float mwir_nm = 4000.0f;  // 4 um
+        const float lwir_nm = 10000.0f; // 10 um
+
+        if (m_irEmissivity > 0.0f) {
+            modified.irEmissivityCurve.push_back({mwir_nm, m_irEmissivity});
+            modified.irEmissivityCurve.push_back({lwir_nm, m_irEmissivity});
+        }
+
+        if (m_irTransmittance > 0.0f) {
+            modified.irTransmittanceCurve.push_back({mwir_nm, m_irTransmittance});
+            modified.irTransmittanceCurve.push_back({lwir_nm, m_irTransmittance});
+        }
+
+        // Compute reflectance from energy conservation
+        float reflectance = 1.0f - m_irEmissivity - m_irTransmittance;
+        if (reflectance > 0.0f) {
+            modified.irReflectanceCurve.push_back({mwir_nm, reflectance});
+            modified.irReflectanceCurve.push_back({lwir_nm, reflectance});
+        }
+
+        modified.irTemperature_K = m_irTemperature_K;
+    }
 
     emit materialChanged(m_currentIndex, modified);
 }

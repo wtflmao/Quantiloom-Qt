@@ -14,6 +14,17 @@
 #include <postprocess/SensorModel.hpp>
 
 /**
+ * @struct MaterialConfig
+ * @brief IR material overrides from TOML config
+ */
+struct MaterialConfig {
+    QString name;                // Material name to match
+    float irEmissivity = 0.0f;   // IR emissivity [0,1]
+    float irTransmittance = 0.0f; // IR transmittance [0,1]
+    float irTemperature_K = 0.0f; // Surface temperature (K)
+};
+
+/**
  * @struct SceneConfig
  * @brief Extracted configuration values for UI panels
  */
@@ -53,6 +64,9 @@ struct SceneConfig {
     // [sensor]
     bool sensorEnabled = false;
     quantiloom::SensorParams sensorParams;
+
+    // [[materials]] - IR material overrides
+    QVector<MaterialConfig> materialConfigs;
 
     // Config file base directory (for resolving relative paths)
     QString baseDir;
