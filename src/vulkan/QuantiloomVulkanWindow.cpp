@@ -212,6 +212,10 @@ std::unique_ptr<quantiloom::Image> QuantiloomVulkanWindow::captureScreenshot() {
     return m_renderer ? m_renderer->captureScreenshot() : nullptr;
 }
 
+std::unique_ptr<quantiloom::Image> QuantiloomVulkanWindow::captureDisplayImage() {
+    return m_renderer ? m_renderer->captureDisplayImage() : nullptr;
+}
+
 // ============================================================================
 // Atmospheric Configuration
 // ============================================================================
@@ -243,6 +247,13 @@ void QuantiloomVulkanWindow::setSensorEnabled(bool enabled) {
 void QuantiloomVulkanWindow::setSensorParams(const quantiloom::SensorParams& params) {
     if (m_renderer) {
         m_renderer->setSensorParams(params);
+    }
+}
+
+void QuantiloomVulkanWindow::setDisplayEnhancement(bool enabled, float clipLimit,
+                                                    int tileSize, bool luminanceOnly) {
+    if (m_renderer) {
+        m_renderer->setDisplayEnhancement(enabled, clipLimit, tileSize, luminanceOnly);
     }
 }
 

@@ -41,6 +41,7 @@ class SpectralConfigPanel;
 class DebugVisualizationPanel;
 class AtmosphericPanel;
 class SensorPanel;
+class DisplayEnhancementPanel;
 class ConfigManager;
 class SelectionManager;
 class TransformGizmo;
@@ -146,6 +147,13 @@ private:
     DebugVisualizationPanel* m_debugVisualizationPanel = nullptr;
     AtmosphericPanel* m_atmosphericPanel = nullptr;
     SensorPanel* m_sensorPanel = nullptr;
+    DisplayEnhancementPanel* m_displayEnhancementPanel = nullptr;
+
+    // Display enhancement (CLAHE) settings
+    bool m_displayEnhancementEnabled = false;
+    float m_claheClipLimit = 2.0f;
+    int m_claheTileSize = 8;
+    bool m_claheLuminanceOnly = true;
 
     // Status bar widgets
     QLabel* m_statusLabel = nullptr;

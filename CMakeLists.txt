@@ -120,6 +120,8 @@ set(GUI_SOURCES
     src/panels/AtmosphericPanel.hpp
     src/panels/SensorPanel.cpp
     src/panels/SensorPanel.hpp
+    src/panels/DisplayEnhancementPanel.cpp
+    src/panels/DisplayEnhancementPanel.hpp
     # Configuration management
     src/config/ConfigManager.cpp
     src/config/ConfigManager.hpp

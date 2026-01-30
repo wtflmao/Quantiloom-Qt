@@ -15,6 +15,7 @@
 #include "panels/DebugVisualizationPanel.hpp"
 #include "panels/AtmosphericPanel.hpp"
 #include "panels/SensorPanel.hpp"
+#include "panels/DisplayEnhancementPanel.hpp"
 #include "config/ConfigManager.hpp"
 #include "editing/SelectionManager.hpp"
 #include "editing/TransformGizmo.hpp"
@@ -54,6 +55,7 @@
 #include <postprocess/SensorModel.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <cmath>
 
 MainWindow::MainWindow(QVulkanInstance* vulkanInstance, QWidget* parent)
     : QMainWindow(parent)
@@ -219,6 +221,7 @@ void MainWindow::setupDockWidgets() {
     m_debugVisualizationPanel = new DebugVisualizationPanel();
     m_atmosphericPanel = new AtmosphericPanel();
     m_sensorPanel = new SensorPanel();
+    m_displayEnhancementPanel = new DisplayEnhancementPanel();
 
     // Add panels to tabs
     m_parameterTabs->addTab(m_sceneTreePanel, tr("Scene"));
@@ -228,6 +231,7 @@ void MainWindow::setupDockWidgets() {
     m_parameterTabs->addTab(m_sensorPanel, tr("Sensor"));
     m_parameterTabs->addTab(m_renderSettingsPanel, tr("Render"));
     m_parameterTabs->addTab(m_spectralConfigPanel, tr("Spectral"));
+    m_parameterTabs->addTab(m_displayEnhancementPanel, tr("Display"));
     m_parameterTabs->addTab(m_debugVisualizationPanel, tr("Debug"));
 
     m_parameterDock->setWidget(m_parameterTabs);
@@ -280,6 +284,21 @@ void MainWindow::setupDockWidgets() {
             this, [this](const quantiloom::SensorParams& params) {
                 m_vulkanWindow->setSensorParams(params);
                 m_statusLabel->setText(tr("Sensor params updated"));
+            });
+
+    // Display enhancement panel signals
+    connect(m_displayEnhancementPanel, &DisplayEnhancementPanel::enhancementChanged,
+            this, [this](bool enabled, float clipLimit, int tileSize, bool luminanceOnly) {
+                m_displayEnhancementEnabled = enabled;
+                m_claheClipLimit = clipLimit;
+                m_claheTileSize = tileSize;
+                m_claheLuminanceOnly = luminanceOnly;
+                // Update renderer with CLAHE settings
+                m_vulkanWindow->setDisplayEnhancement(enabled, clipLimit, tileSize, luminanceOnly);
+                m_statusLabel->setText(enabled
+                    ? tr("Display enhancement enabled (CLAHE: clip=%1, tiles=%2x%2)")
+                        .arg(clipLimit, 0, 'f', 1).arg(tileSize)
+                    : tr("Display enhancement disabled"));
             });
 }
 
@@ -485,9 +504,36 @@ void MainWindow::onExportImage() {
         tr("EXR Image (*.exr);;PNG Image (*.png);;All Files (*)")
     );
 
-    if (!fileName.isEmpty()) {
-        // TODO: Export rendered image
+    if (fileName.isEmpty()) return;
+
+    // Capture original HDR data (no CLAHE — export preserves physical values)
+    auto image = m_vulkanWindow->captureScreenshot();
+    if (!image) {
+        QMessageBox::warning(this, tr("Export Failed"),
+            tr("Failed to capture image. Make sure a scene is loaded."));
+        m_statusLabel->setText(tr("Export failed"));
+        return;
+    }
+
+    bool success = false;
+    if (fileName.endsWith(".exr", Qt::CaseInsensitive)) {
+        success = quantiloom::ImageIO::WriteEXR(fileName.toStdString(), *image);
+    } else if (fileName.endsWith(".png", Qt::CaseInsensitive)) {
+        success = quantiloom::ImageIO::WritePNG(fileName.toStdString(), *image);
+    } else {
+        // Default to EXR
+        if (!fileName.contains('.')) {
+            fileName += ".exr";
+        }
+        success = quantiloom::ImageIO::WriteEXR(fileName.toStdString(), *image);
+    }
+
+    if (success) {
         m_statusLabel->setText(tr("Exported: %1").arg(fileName));
+    } else {
+        QMessageBox::warning(this, tr("Export Failed"),
+            tr("Failed to save image:\n%1").arg(fileName));
+        m_statusLabel->setText(tr("Export failed"));
     }
 }
 
@@ -510,14 +556,19 @@ void MainWindow::onResetCamera() {
 }
 
 void MainWindow::onTakeScreenshot() {
-    // Capture from Vulkan renderer
-    auto image = m_vulkanWindow->captureScreenshot();
+    // Capture display image (with CLAHE applied if enabled by GPU)
+    auto image = m_vulkanWindow->captureDisplayImage();
     if (!image) {
         QMessageBox::warning(this, tr("Screenshot Failed"),
             tr("Failed to capture screenshot. Make sure a scene is loaded."));
         m_statusLabel->setText(tr("Screenshot failed"));
         return;
     }
+
+    // Note: CLAHE is now applied on GPU in real-time
+    // captureDisplayImage() returns the image as displayed on screen
+    qDebug() << "Screenshot captured:" << image->width << "x" << image->height
+             << "CLAHE enabled:" << m_displayEnhancementEnabled;
 
     // Get screenshot save path from settings
     QSettings settings;
@@ -551,7 +602,7 @@ void MainWindow::onTakeScreenshot() {
     QString exrPath = baseFilename + ".exr";
     QString pngPath = baseFilename + ".png";
 
-    // Save EXR (HDR)
+    // Save EXR (HDR) — screenshot reflects display (includes CLAHE if enabled)
     bool exrSuccess = quantiloom::ImageIO::WriteEXR(exrPath.toStdString(), *image);
     if (!exrSuccess) {
         QMessageBox::warning(this, tr("Screenshot Failed"),

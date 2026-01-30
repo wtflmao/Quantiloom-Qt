@@ -658,6 +658,20 @@ std::unique_ptr<quantiloom::Image> QuantiloomVulkanRenderer::captureScreenshot()
     return std::make_unique<quantiloom::Image>(std::move(result.value()));
 }
 
+std::unique_ptr<quantiloom::Image> QuantiloomVulkanRenderer::captureDisplayImage() {
+    if (!m_renderContext) {
+        return nullptr;
+    }
+
+    auto result = m_renderContext->CaptureDisplayImage();
+    if (!result.has_value()) {
+        qWarning() << "Display image capture failed:" << QString::fromStdString(result.error());
+        return nullptr;
+    }
+
+    return std::make_unique<quantiloom::Image>(std::move(result.value()));
+}
+
 // ============================================================================
 // Atmospheric Configuration
 // ============================================================================
@@ -751,4 +765,28 @@ void QuantiloomVulkanRenderer::setSensorParams(const quantiloom::SensorParams& p
     qDebug() << "Sensor params updated: focal_length=" << params.focalLength_mm
              << "mm, f/" << params.fNumber
              << ", bit_depth=" << params.bitDepth;
+}
+
+void QuantiloomVulkanRenderer::setDisplayEnhancement(bool enabled, float clipLimit,
+                                                      int tileSize, bool luminanceOnly) {
+    m_displayEnhancementEnabled = enabled;
+    m_claheClipLimit = clipLimit;
+    m_claheTileSize = tileSize;
+    m_claheLuminanceOnly = luminanceOnly;
+
+    // Pass CLAHE params to libQuantiloom for GPU processing
+    if (m_renderContext) {
+        quantiloom::ExternalRenderContext::CLAHEParams params;
+        params.enabled = enabled;
+        params.clipLimit = clipLimit;
+        params.tileSize = tileSize;
+        params.luminanceOnly = luminanceOnly;
+        params.normalizeOutput = true;
+        m_renderContext->SetCLAHEParams(params);
+    }
+
+    qDebug() << "Display enhancement:" << (enabled ? "ENABLED" : "disabled")
+             << "- CLAHE clip=" << clipLimit
+             << ", tiles=" << tileSize << "x" << tileSize
+             << ", luminanceOnly=" << luminanceOnly;
 }

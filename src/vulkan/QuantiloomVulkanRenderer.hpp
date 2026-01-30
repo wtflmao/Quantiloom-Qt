@@ -113,6 +113,12 @@ public:
      */
     std::unique_ptr<quantiloom::Image> captureScreenshot();
 
+    /**
+     * @brief Capture display image (with CLAHE applied if enabled)
+     * @return Image as shown on screen, or nullptr if failed
+     */
+    std::unique_ptr<quantiloom::Image> captureDisplayImage();
+
     // ========================================================================
     // Atmospheric Configuration
     // ========================================================================
@@ -177,6 +183,23 @@ public:
      */
     const quantiloom::SensorParams& getSensorParams() const { return m_sensorParams; }
 
+    // ========================================================================
+    // Display Enhancement (CLAHE)
+    // ========================================================================
+
+    /**
+     * @brief Set display enhancement parameters
+     * Note: Currently CLAHE is applied to screenshots only.
+     *       Real-time display enhancement would require GPU implementation.
+     */
+    void setDisplayEnhancement(bool enabled, float clipLimit,
+                               int tileSize, bool luminanceOnly);
+
+    bool isDisplayEnhancementEnabled() const { return m_displayEnhancementEnabled; }
+    float getClaheClipLimit() const { return m_claheClipLimit; }
+    int getClaheTileSize() const { return m_claheTileSize; }
+    bool isClaheLuminanceOnly() const { return m_claheLuminanceOnly; }
+
 private:
     void updateCamera(float deltaTime);
 
@@ -236,6 +259,12 @@ private:
     bool m_sensorEnabled = false;
     quantiloom::SensorParams m_sensorParams;
     std::unique_ptr<quantiloom::GenericSensor> m_sensor;
+
+    // Display enhancement (CLAHE)
+    bool m_displayEnhancementEnabled = false;
+    float m_claheClipLimit = 2.0f;
+    int m_claheTileSize = 8;
+    bool m_claheLuminanceOnly = true;
 
     // Initialization state
     bool m_initialized = false;

@@ -136,6 +136,14 @@ public:
      */
     std::unique_ptr<quantiloom::Image> captureScreenshot();
 
+    /**
+     * @brief Capture display image (with CLAHE applied if enabled)
+     *
+     * Returns the image as shown on screen. If CLAHE is enabled,
+     * the returned image has CLAHE processing applied.
+     */
+    std::unique_ptr<quantiloom::Image> captureDisplayImage();
+
     // ========================================================================
     // Atmospheric Configuration
     // ========================================================================
@@ -173,6 +181,20 @@ public:
      * @param params Sensor parameters (optics, detector, noise, etc.)
      */
     void setSensorParams(const quantiloom::SensorParams& params);
+
+    // ========================================================================
+    // Display Enhancement (CLAHE)
+    // ========================================================================
+
+    /**
+     * @brief Enable or disable display enhancement (CLAHE)
+     * @param enabled true to enable CLAHE post-processing on display
+     * @param clipLimit Contrast limit (1.0 = no limit, typical 2.0-4.0)
+     * @param tileSize Tile grid size (4, 8, 16, or 32)
+     * @param luminanceOnly Apply only to luminance channel (preserve color)
+     */
+    void setDisplayEnhancement(bool enabled, float clipLimit,
+                               int tileSize, bool luminanceOnly);
 
     // ========================================================================
     // Scene Editing
